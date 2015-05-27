@@ -7,14 +7,14 @@ For people used to React(by facebook), Mithril is just a little bit quirky. And 
 Hence, here is the "mReact". 
 * Only 14k by minified.
 * Similar usage to React, include lifecycle methods, createCompoenet factory method(similar to createClass)
-* support MSX syntax(similar to JSX) companioned by  [MSX by Jonathan Buchanan](https://github.com/insin/msx)
+* Support MSX syntax(similar to JSX) by using [MSX by Jonathan Buchanan](https://github.com/insin/msx)
 
 Usage
 ------
 code:
 ```javascript
     var m = require('m-react');
-    var MyComponent = m.createCompoenet({
+    var MyComponent = m.createComponent({
         render: function(props, state){
             return (
                 <div>
