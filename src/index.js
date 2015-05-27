@@ -1,0 +1,10 @@
+import {render, m} from './render';
+import {redraw, startComputation, endComputation} from './update';
+import {mount, component, createComponent} from './mount';
+var mReact = m;
+mReact.render = render;
+mReact.redraw = redraw;
+mReact.mount = mount;
+mReact.component = component;
+mReact.createComponent = createComponent;
+export default mReact;

@@ -1,0 +1,10 @@
+{
+  "src": {
+    "entries": ["src/**/*.js"]
+  },
+  "dest": {
+    "build": "./build",
+    "dist": "./dist",
+    "outputFile": "m-react.js"
+  }
+}
