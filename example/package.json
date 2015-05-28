@@ -1,0 +1,19 @@
+{
+  "name": "m-react-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "browserify-middleware": "^5.0.2",
+    "compression": "^1.4.4",
+    "express": "^4.12.4",
+    "mithrilify": "0.0.3",
+    "morgan": "^1.5.3"
+  }
+}

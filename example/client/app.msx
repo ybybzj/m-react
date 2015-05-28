@@ -1,6 +1,5 @@
-console.log(mithril);
 var container = document.getElementById('container');
-var m = mithril;
+var m = require('../../build/m-react');
 // var data = {temp: 10};
 // function oninput(e){
 //   console.log(e);
@@ -11,8 +10,15 @@ var MyApp = m.createComponent({
   render: function(props, state) {
     return (
       <div>
-        <input oninput={this.oninput.bind(this)} value={state.temp}/>
-        {"K"}
+        <div className="mui-appbar mui-appbar-line-height mui-text-headline mui-text-white">记一笔</div>
+        <form className="mui-form-inline">
+        <div class="mui-form-group">
+          <input type="text" class="mui-form-control" oninput={this.oninput.bind(this)} value={state.temp}/>
+          <label class="mui-form-floating-label">日期</label>
+          <span className="mui-text-subhead">K</span>
+        </div>
+          
+        </form>
         <br/>
         <TemperatureConverter value={state.temp}>
           {"celsius:"}{this.kelvinToCelsius(state.temp)}
@@ -28,6 +34,9 @@ var MyApp = m.createComponent({
       temp: e.target.value
     });
   },
+  shouldComponentUpdate: function(oldProps, oldState){
+    return Number(this.state.temp) !== 5;
+  },
   getInitialState: function(){
     return {temp: 10};
   },
@@ -42,8 +51,6 @@ var TemperatureConverter = m.createComponent({
   render: function(props, state) {
     return (
       <div ref="temp-converter">
-        <div>{state.date}</div>
-        {props.children}
       </div>
     );
   },
@@ -51,35 +58,23 @@ var TemperatureConverter = m.createComponent({
     return {date: (new Date()).toString()};
   },
   componentDidMount:function(el){
-    var self = this;
-    this.timer = setInterval(function(){
-      self.setState({
-        date: (new Date()).toString()
-      });
-    },1000);
+    // var self = this;
+    console.log('componentDidMount');
+    m.render(el, this.props.children);
+    // this.timer = setInterval(function(){
+    //   self.setState({
+    //     date: (new Date()).toString()
+    //   });
+    // },1000);
   },
-  componentDidUpdate:function(el){
-    console.log('componentDidUpdate');
+  componentWillUpdate:function(el){
+    console.log('componentWillUpdate');
     console.log(el);
     console.log(this.props.children);
+    // m.render(el, this.props.children);
   },
   componentWillUnmount: function(e){
-    clearTimeout(this.timer);
+    // clearTimeout(this.timer);
   }
 });
-m.mount(document.body, MyApp);
-// m("div", [
-//       m("input", {
-//         oninput: this.oninput.bind(this),
-//         value: state.temp
-//       }), "K",
-//       m("br"),
-//       state.temp == 11 ? null: m.component(TemperatureConverter, {
-//         value: state.temp
-//       },["celsius:", this.kelvinToCelsius(state.temp),
-//         m("br"), "fahrenheit:", this.kelvinToFahrenheit(state.temp),
-//       ])
-//     ]);
-//     m('div', {
-    //   ref: 'temp-converter'
-    // }, m('div', state.date),m('p',props.children));
+m.mount(document.getElementById('container'), MyApp);

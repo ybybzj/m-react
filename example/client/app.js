@@ -28,6 +28,9 @@ var MyApp = m.createComponent({
       temp: e.target.value
     });
   },
+  shouldComponentUpdate: function(oldProps, oldState){
+    return Number(this.state.temp) !== 5;
+  },
   getInitialState: function(){
     return {temp: 10};
   },
@@ -67,9 +70,7 @@ var TemperatureConverter = m.createComponent({
     clearTimeout(this.timer);
   }
 });
-// m.mount(document.body, MyApp);
-m.render(document.body, MyApp);
-
+m.mount(document.body, MyApp);
 // m("div", [
 //       m("input", {
 //         oninput: this.oninput.bind(this),

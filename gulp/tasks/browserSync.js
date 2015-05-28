@@ -5,7 +5,7 @@ module.exports = function(gulp, $, cfg) {
     .pipe($.msx())
     .pipe(gulp.dest('./example'));
   });
-  gulp.task('sync', ['build', 'transform-msx'], function() {
+  gulp.task('sync', ['dist', 'transform-msx'], function() {
     browserSync({
       files: ['./example/app.js', './example/index.html', './build/*.js'],
       server: {
