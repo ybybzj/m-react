@@ -1,7 +1,7 @@
 import * as update from '../update';
 import {type, extend, slice, removeVoidValue, toArray} from '../utils';
-var extendMethods = ['componentDidMount', 'componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps'];
-var ignoreProps = ['setState', 'mixins'];
+var extendMethods = ['componentDidMount', 'componentWillUpdate','componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps'];
+var ignoreProps = ['setState', 'mixins','onunload', 'setRoot'];
 class Component{
   constructor(props, children){
     if(type(props) !== 'object' && props != null){
@@ -10,6 +10,8 @@ class Component{
     this.props = props || {};
     this.state = {};
     this.props.children = toArray(children);
+    this.root = null;
+
     if(this.getInitialProps){
       this.props = this.getInitialProps(this.props);
     }
@@ -22,6 +24,15 @@ class Component{
       props = this.componentWillReceiveProps(props);
     }
     this.props = removeVoidValue(extend(this.props, props, {children: toArray(children)}));
+  }
+  onunload(fn){
+    if(type(fn) === 'function'){
+      fn.call(this);
+    }
+    this.root = null;
+  }
+  setRoot(rootEl){
+    this.root = rootEl;
   }
   // getInitialProps(props){
 
@@ -71,7 +82,7 @@ export default function createComponent(options){
       instance: instance
     };
     if(type(instance.componentWillUnmount) === 'function'){
-      ctrl.onunload = instance.componentWillUnmount.bind(instance);
+      ctrl.onunload = instance.onunload.bind(instance, instance.componentWillUnmount);
     }
     return ctrl;
   };
@@ -138,6 +149,7 @@ function makeView(){
   return function componentView(ctrl, props, children){
     var instance = ctrl.instance,
         config = function(node, isInitialized, context){
+          _executeFn(instance, 'setRoot', node);
           if(!isInitialized){
             _executeFn(instance, 'componentDidMount', node);
             if(type(instance.componentWillDetached) === 'function'){
@@ -159,7 +171,10 @@ function makeView(){
       if(_executeFn(instance, 'shouldComponentUpdate', oldProps, oldState) === false){
         return {subtree: 'retain'};
       }
-
+      if(instance.root != null){
+        _executeFn(instance, 'componentWillUpdate', instance.root, oldProps, oldState);
+      }
+      
       var resultView = _executeFn(instance, 'render', instance.props, instance.state);
       resultView.attrs = resultView.attrs || {};
       resultView.attrs.config = config;
