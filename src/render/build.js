@@ -325,7 +325,9 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
   }else{
     domNode = cached.nodes[0];
     if (hasKeys) setAttributes(domNode, data.tag, data.attrs, cached.attrs, namespace);
-    cached.children = build(domNode, data.tag, undefined, undefined, data.children, cached.children, false, 0, data.attrs.contenteditable ? domNode : editable, namespace, configs);
+    cached.children = data.children != null && data.children.length > 0 ?
+        build(domNode, data.tag, undefined, undefined, data.children, cached.children, false, 0, data.attrs.contenteditable ? domNode : editable, namespace, configs) :
+        data.children;
     cached.nodes.intact = true;
     if (controllers.length) {
       cached.views = views;
