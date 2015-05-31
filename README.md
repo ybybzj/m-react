@@ -5,20 +5,22 @@ mReact is a fork library of [Mithril](https://lhorie.github.io/mithril/getting-s
 For people used to [React](https://facebook.github.io/react/)(by facebook), Mithril is just a little bit quirky. And sometimes, we just need a pure render engine with a virtual DOM diff implementation. React though is great, is too big for mobile site(around 80k by gzip).
 
 Hence, here is the "mReact". 
-* Only 14k by minified.
+* Only 20k by minified.
 * Similar usage to React, include lifecycle methods, createCompoenet factory method(similar to createClass)
 * Support MSX syntax(similar to JSX) by using [MSX by Jonathan Buchanan](https://github.com/insin/msx)
+* Support Event Delegation(need turn on manually)
 
 Usage
 ------
 code:
 ```javascript
     var m = require('m-react');
+    m.startEventDelegation();
     var MyComponent = m.createComponent({
         render: function(props, state){
             return (
                 <div>
-                    <input type={"text"}/>
+                    <input type={"text"} evChange={this.onChange.bind(this)}/>
                     <p backgroundColor={props.backgroundColor}>{state.date}</p>
                 </div>
             );
@@ -27,6 +29,10 @@ code:
             return {
                 date: (new Date).toString()
             };
+        },
+        onChange: function(ev){
+            console.log(ev.currentTarget);
+            console.log(ev.originalEvent);
         },
         componentDidMount: function(){
             var self = this;
