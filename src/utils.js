@@ -1,4 +1,4 @@
-export { NOOP, type, slice, gettersetter, hasOwn, extend, removeVoidValue, toArray };
+export { NOOP, type, slice, gettersetter, hasOwn, extend, removeVoidValue, toArray, getHash,matchReg };
 
 function NOOP() {};
 
@@ -24,6 +24,8 @@ function type(o) {
       return 'function';
     case '[object Number]':
       return 'number';
+    case '[object RegExp]':
+      return 'regexp';
     default:
       return 'unknown';
   }
@@ -85,4 +87,13 @@ function toArray(a){
     default:
       return [a];
   }
+}
+function getHash () {
+  return Object.create(null);
+}
+function matchReg(str, reg){
+  if(type(str) !== 'string' || type(reg) !== 'regexp'){
+    return null;
+  }
+  return str.match(reg);
 }

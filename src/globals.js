@@ -1,13 +1,8 @@
 import {gettersetter} from './utils';
+import {Map} from './store';
+import DOMDelegator from './dom-delegator';
 export var global = window || this;
 export var document = global.document;
-// export var pendingRequests = gettersetter();
-// export var forcing = gettersetter(false);
-// export var unloaders = [];
-// export var updateStrategy = gettersetter();
-// export var roots = [];
-// export var components = [];
-// export var controllers = [];
 export var G = {
   pendingRequests: 0,
   forcing: false,
@@ -15,7 +10,11 @@ export var G = {
   updateStrategy: gettersetter(),
   computePreRedrawHook : null,
   computePostRedrawHook : null,
+  //mount registries
   roots: [],
   components: [],
-  controllers: []
+  controllers: [],
+  //render registries
+  domCacheMap: new Map(),
+  domDelegator: new DOMDelegator()
 };

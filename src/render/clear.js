@@ -1,10 +1,15 @@
 import { type, NOOP } from '../utils';
+import {G} from '../globals';
+var domCacheMap = G.domCacheMap;
+var domDelegator = G.domDelegator;
 export default function clear(domNodes, vNodes) {
   vNodes = vNodes || [];
   vNodes = [].concat(vNodes);
   for (let i = domNodes.length - 1; i > -1; i--) {
     if (domNodes[i] && domNodes[i].parentNode) {
       if (vNodes[i]) unload(vNodes[i]);// cleanup before dom is removed from dom tree
+      domDelegator.off(domNodes[i]);
+      domCacheMap.remove(domNodes[i]);
       try {
         domNodes[i].parentNode.removeChild(domNodes[i]);
       } catch (e) {} //ignore if this fails due to order of events (see http://stackoverflow.com/questions/21926083/failed-to-execute-removechild-on-node)

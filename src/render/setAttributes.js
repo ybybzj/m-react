@@ -1,8 +1,13 @@
-import { type } from '../utils';
+import { type, matchReg } from '../utils';
+import {G} from '../globals';
+var domDelegator = G.domDelegator;
+var evAttrReg = /^ev([A-Z]\w*)/;
 export default function setAttributes(domNode, tag, dataAttrs, cachedAttrs, namespace) {
   Object.keys(dataAttrs).forEach(function(attrName) {
-    var dataAttr = dataAttrs[attrName];
-    var cachedAttr = cachedAttrs[attrName];
+    var dataAttr = dataAttrs[attrName],
+        cachedAttr = cachedAttrs[attrName],
+        evMatch;
+
     if (!(attrName in cachedAttrs) || (cachedAttr !== dataAttr)) {
       cachedAttrs[attrName] = dataAttr;
       try {
@@ -11,7 +16,19 @@ export default function setAttributes(domNode, tag, dataAttrs, cachedAttrs, name
         //hook event handlers to the auto-redrawing system
         else if (type(dataAttr) === 'function' && attrName.indexOf("on") === 0) {
           domNode[attrName] = dataAttr;
-          // domNode[attrName] = autoredraw(dataAttr, domNode);
+          // bind handler to domNode for a delegation event
+        }else if((evMatch = matchReg(attrName,evAttrReg)) && evMatch[1].length){
+          let evType = evMatch[1].toLowerCase();
+          if(isHandler(dataAttr)){
+            if(isHandler(cachedAttr)){
+              domDelegator.off(domNode, evType, cachedAttr);
+            }
+            domDelegator.on(domNode, evType, dataAttr);
+          }else{
+            if(isHandler(cachedAttr)){
+              domDelegator.off(domNode, evType, cachedAttr);
+            }
+          }
         }
         //handle `style: {...}`
         else if (attrName === "style" && dataAttr != null && type(dataAttr) === 'object') {
@@ -50,4 +67,8 @@ export default function setAttributes(domNode, tag, dataAttrs, cachedAttrs, name
     }
   });
   return cachedAttrs;
+}
+
+function isHandler(handler){
+  return type(handler) === 'function' || (handler && type(handler.handleEvent) === 'function');
 }

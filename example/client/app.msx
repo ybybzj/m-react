@@ -13,7 +13,7 @@ var MyApp = m.createComponent({
         <div className="mui-appbar mui-appbar-line-height mui-text-headline mui-text-white">记一笔</div>
         <form className="mui-form-inline">
         <div class="mui-form-group">
-          <input type="text" class="mui-form-control" oninput={this.oninput.bind(this)} value={state.temp}/>
+          <input type="text" class="mui-form-control" evInput={this.oninput.bind(this)} value={state.temp}/>
           <label class="mui-form-floating-label">日期</label>
           <span className="mui-text-subhead">K</span>
         </div>

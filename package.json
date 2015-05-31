@@ -1,5 +1,5 @@
 {
-  "name": "mithril-fork",
+  "name": "m-react",
   "version": "0.1.0",
   "description": "Mithril fork that is  modulized ",
   "main": "dist/m-react.min.js",
@@ -13,9 +13,11 @@
   "author": "ybybzj",
   "license": "MIT",
   "devDependencies": {
+    "browser-sync": "^2.7.6",
+    "esperanto-bundle-stream": "^1.0.2",
+    "gulp": "^3.8.11",
     "gulp-babel": "^5.1.0",
     "gulp-changed": "^1.2.1",
-    "esperanto-bundle-stream": "^1.0.2",
     "gulp-if": "^1.2.5",
     "gulp-load-plugins": "^0.10.0",
     "gulp-msx": "^0.4.0",
