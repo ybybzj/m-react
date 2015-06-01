@@ -2,7 +2,7 @@ import * as update from '../update';
 import {type, extend, slice, removeVoidValue, toArray} from '../utils';
 var extendMethods = ['componentDidMount', 'componentWillUpdate','componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps'];
 var ignoreProps = ['setState', 'mixins','onunload', 'setRoot'];
-var id = 0;
+
 class Component{
   constructor(props, children){
     if(type(props) !== 'object' && props != null){
@@ -12,7 +12,6 @@ class Component{
     this.state = {};
     this.props.children = toArray(children);
     this.root = null;
-    this._id = id++;
     if(this.getInitialProps){
       this.props = this.getInitialProps(this.props);
     }

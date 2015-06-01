@@ -7,7 +7,8 @@ export var G = {
   pendingRequests: 0,
   forcing: false,
   unloaders: [],
-  updateStrategy: gettersetter(),
+  //default update strategy is 'diff', so render method will diff update
+  updateStrategy: gettersetter('diff'),
   computePreRedrawHook : null,
   computePostRedrawHook : null,
   //mount registries
