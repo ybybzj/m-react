@@ -46,3 +46,9 @@ export default function m(){
 
   return vNode;
 }
+
+m.trust = function(value){
+  value = new String(value);
+  value.$trusted = true;
+  return value;
+};
