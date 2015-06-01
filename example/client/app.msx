@@ -1,11 +1,11 @@
 var container = document.getElementById('container');
-var m = require('../../build/m-react');
-// var data = {temp: 10};
-// function oninput(e){
-//   console.log(e);
-//   data.temp = e.target.value;
-//   m.redraw();
-// }
+// var m = require('../../build/m-react');
+var m = mReact;
+m.domDelegator.addGlobalEventListener('input', function globalOnInput(ev){
+  console.log('Global input event~!');
+  console.log(ev);
+  m.domDelegator.removeGlobalEventListener('input', globalOnInput);
+});
 var MyApp = m.createComponent({
   render: function(props, state) {
     return (
@@ -13,7 +13,7 @@ var MyApp = m.createComponent({
         <div className="mui-appbar mui-appbar-line-height mui-text-headline mui-text-white">记一笔</div>
         <form className="mui-form-inline">
         <div class="mui-form-group">
-          <input type="text" class="mui-form-control" evInput={this.oninput.bind(this)} value={state.temp}/>
+          <input type="text" class="mui-form-control" evInput={this.onInput} value={state.temp}/>
           <label class="mui-form-floating-label">日期</label>
           <span className="mui-text-subhead">K</span>
         </div>
@@ -28,11 +28,13 @@ var MyApp = m.createComponent({
       </div>
     );
   },
-  oninput: function(e){
+  onInput: function(e){
     console.log(e);
+    m.domDelegator.off(e.currentTarget,e.type, this.onInput);
     this.setState({
       temp: e.target.value
     });
+
   },
   shouldComponentUpdate: function(oldProps, oldState){
     return Number(this.state.temp) !== 5;
@@ -71,7 +73,7 @@ var TemperatureConverter = m.createComponent({
     console.log('componentWillUpdate');
     console.log(el);
     console.log(this.props.children);
-    // m.render(el, this.props.children);
+    m.render(el, this.props.children);
   },
   componentWillUnmount: function(e){
     // clearTimeout(this.timer);
