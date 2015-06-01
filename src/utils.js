@@ -77,13 +77,33 @@ function removeVoidValue(o){
   return result;
 }
 
+//only flatten one level, since other case is rare
+function _flatten(a){
+  var result = [], needFlatten = true;
+  for(let i=0,l = a.length; i < l; i++){
+    let item = a[i];
+    if(type(item) === 'array'){
+      result.push(item);
+    }else{
+      needFlatten = false;
+      break;
+    }
+  }
+  if(needFlatten === false || a.length === 0){
+    result = a;
+  }else{
+    result = [].concat.apply([], result);
+  }
+  return result;
+}
+
 function toArray(a){
   switch(type(a)){
     case 'undefined':
     case 'null':
       return [];
     case 'array':
-      return a;
+      return _flatten(a);
     default:
       return [a];
   }

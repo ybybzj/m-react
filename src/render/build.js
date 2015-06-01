@@ -87,7 +87,7 @@ function diffChildrenWithKey(data, cached, parentElement) {
   var DELETION = 1,
     INSERTION = 2,
     MOVE = 3;
-  var exsiting = {}, shouldMaintainIdentities = false;
+  var existing = {}, shouldMaintainIdentities = false;
   // 1)
   cached.forEach(function(cachedNode, idx) {
     let key = _key(cachedNode);
