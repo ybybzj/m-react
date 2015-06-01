@@ -10,7 +10,7 @@ import {
 import addEventListener from './addEvent';
 import removeEventListener from './removeEvent';
 import ProxyEvent from './proxyEvent';
-import {type, getHash, extend} from '../utils';
+import {type, getHash} from '../utils';
 import {Map} from '../store';
 
 export default function DOMDelegator(doc){
@@ -30,38 +30,40 @@ export default function DOMDelegator(doc){
 }
 var proto = DOMDelegator.prototype;
 
-prtoto.on = function on(el, evType, handler){
+proto.on = function on(el, evType, handler){
   var evStore = getEvStore(this.domEvHandlerMap, el, getHash());
-  addListener(evStore, evType, handler);
+  addListener(evStore, evType, this, handler);
   return this;
 };
 
-prtoto.off = function off(el, evType, handler){
+proto.off = function off(el, evType, handler){
   var evStore = getEvStore(this.domEvHandlerMap, el);
   if(!evStore) return this;
-  if(arguments.length === 3){
-    removeListener(evStore, evType, handler);
+  if(arguments.length >= 3){
+    removeListener(evStore, evType, this, handler);
   }else if(arguments.length === 2){
-    removeListener(evStore, evType);
+    removeListener(evStore, evType, this);
+  }else{
+    removeAllListener(evStore, this);
   }
 
-  if(arguments.length === 1 || Object.keys(evStore).length === 0){
+  if(Object.keys(evStore).length === 0){
     this.domEvHandlerMap.remove(el);
   }
   return this;
 };
 
 proto.addGlobalEventListener = function addGlobalEventListener(evType, handler){
-  addListener(this.globalListeners, evType, handler);
+  addListener(this.globalListeners, evType, this, handler);
   return this;
 };
 proto.removeGlobalEventListener = function removeGlobalEventListener(evType, handler){
-  if(arguments.length === 2){
-    removeListener(this.globalListeners, evType, handler);
+  if(arguments.length >= 2){
+    removeListener(this.globalListeners, evType, this, handler);
   }else if(arguments.length === 1){
-    removeListener(this.globalListeners, evType);
+    removeListener(this.globalListeners, evType, this);
   } else{
-    this.globalListeners = getHash();
+    removeAllListener(this.globalListeners, this);
   }
   
   return this;
@@ -74,6 +76,8 @@ proto.destroy = function destroy(){
   this.domEvHandlerMap.clear();
 };
 
+//for each evType, increase by 1 if there is a new el start to listen
+// to this type of event
 proto.listenTo = function listenTo(evType){
   if(!(evType in this.listenedEvents)){
     this.listenedEvents[evType] = 0;
@@ -81,8 +85,6 @@ proto.listenTo = function listenTo(evType){
   this.listenedEvents[evType]++;
 
   if(this.listenedEvents[evType] !== 1){
-    console.log('[DOMDelegator listenTo]event "' +
-         evType + '" is already listened!');
     return ;
   }
   var listener = this.eventDispatchers[evType];
@@ -93,13 +95,22 @@ proto.listenTo = function listenTo(evType){
   addEventListener(this.root, evType, listener);
   return this;
 }
-
+//for each evType, decrease by 1 if there is a el stop to listen
+// to this type of event
 proto.unlistenTo = function unlistenTo(evType){
   var eventDispatchers = this.eventDispatchers,
       delegator = this;
   if(arguments.length === 0){
+    //remove all dispatch listeners
     Object.keys(eventDispatchers)
-    .filter(function(evType){return !!eventDispatchers[evType];})
+    .filter(function(evType){
+      var rtn = !!eventDispatchers[evType];
+      if(rtn){
+        //force to call removeEventListener method
+        eventDispatchers[evType] = 1;
+      }
+      return rtn;
+    })
     .forEach(function(evType){
       delegator.unlistenTo(evType);
     });
@@ -110,7 +121,10 @@ proto.unlistenTo = function unlistenTo(evType){
           evType + '" is already unlistened!');
     return;
   }
-  this.listenedEvents[evType] = 0;
+  this.listenedEvents[evType]--;
+  if(this.listenedEvents[evType] > 0){
+    return;
+  }
   var listener = this.eventDispatchers[evType];
   if(!listener){
     throw new Error("[DOMDelegator unlistenTo]: cannot " +
@@ -135,7 +149,7 @@ function createDispatcher(evType, delegator){
   };
 }
 
-function findAndInvokeListeners(el, event, evType, delegator){
+function findAndInvokeListeners(el, ev, evType, delegator){
   var listener = getListener(el, evType, delegator);
   if(listener && listener.handlers.length > 0){
     let listenerEvent = new ProxyEvent(ev);
@@ -179,25 +193,45 @@ function getEvStore(map, el, defaultStore){
   return arguments.length > 2 ? map.get(el, defaultStore): map.get(el);
 }
 
-function addListener(evHash, evType, handler){
+function addListener(evHash, evType, delegator, handler){
   var handlers = evHash[evType] || [];
+  if(handlers.length === 0){
+    //it's first time for this el to listen to event of evType
+    delegator.listenTo(evType);
+  }
   if(handlers.indexOf(handler) === -1){
-    handlers.push(handlers);
+    handlers.push(handler);
   }
   evHash[evType] = handlers;
   return handler;
 }
 
-function removeListener(evHash, evType, handler){
+function removeListener(evHash, evType, delegator, handler){
   var handlers = evHash[evType];
-  if(!handlers || handlers.length === 0 || arguments.length === 2){
+  if(!handlers || handlers.length === 0 || arguments.length === 3){
+    if(handlers && handlers.length){
+      //this el stop to listen to event of evType
+      delegator.unlistenTo(evType);
+    }
     delete evHash[evType];
     return handler;
   }
   var index = handlers.indexOf(handler);
   if(index !== -1){
-    handlers.splice(1, index);
+    handlers.splice(index, 1);
   }
   evHash[evType] = handlers;
+  if(handlers.length === 0){
+    //this el stop to listen to event of evType
+    delegator.unlistenTo(evType);
+    delete evHash[evType];
+  }
   return handler;
+}
+
+function removeAllListener(evHash,delegator){
+  Object.keys(evHash).forEach(function(evType){
+    removeListener(evHash, evType, delegator);
+  });
+  return evHash;
 }

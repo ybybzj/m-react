@@ -9,7 +9,7 @@ export default function Map() {
 Map.prototype = {
   has: function(key) {
     validateKey(key);
-    var list = this._values,
+    var list = this._keys,
       i;
     if (key != key || key === 0) { //NaN or 0
       for (i = list.length; i-- && !is(list[i], key);) {}
@@ -27,7 +27,7 @@ Map.prototype = {
   },
   set: function(key, value) {
     this.has(key) ? 
-      this.values[this._index] = value 
+      this._values[this._index] = value 
       : 
       this._values[this._keys.push(key) - 1] = value;
     return this;
