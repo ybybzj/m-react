@@ -2,7 +2,8 @@ import {global as $global} from '../globals';
 var lastTime = 0,
     FRAME_BUDGET = 16,
     vendors = ['webkit', 'moz', 'ms', 'o'],
-    requestAnimationFrame, cancelAnimationFrame;
+    requestAnimationFrame = $global.requestAnimationFrame, 
+    cancelAnimationFrame = $global.cancelAnimationFrame || $global.cancelRequestAnimationFrame;
 for(let x = 0, l = vendors.length; x < l && !requestAnimationFrame; ++x){
   requestAnimationFrame = $global[vendors[x] + 'RequestAnimationFrame'];
   cancelAnimationFrame = $global[vendors[x] + 'CancelAnimationFrame'] || $global[vendors[x] + 'CancelRequestAnimationFrame']
