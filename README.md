@@ -8,19 +8,18 @@ Hence, here is the "mReact".
 * Only 20k by minified.
 * Similar usage to React, include lifecycle methods, createCompoenet factory method(similar to createClass)
 * Support MSX syntax(similar to JSX) by using [MSX by Jonathan Buchanan](https://github.com/insin/msx)
-* Support Event Delegation(need turn on manually)
+* Support Event Delegation(propperty name start with 'ev')
 
 Usage
 ------
 code:
 ```javascript
     var m = require('m-react');
-    m.startEventDelegation();
     var MyComponent = m.createComponent({
         render: function(props, state){
             return (
                 <div>
-                    <input type={"text"} evChange={this.onChange.bind(this)}/>
+                    <input type={"text"} evChange={this.onChange)}/>
                     <p backgroundColor={props.backgroundColor}>{state.date}</p>
                 </div>
             );
