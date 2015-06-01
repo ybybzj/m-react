@@ -131,6 +131,7 @@ function mixinProto(proto, mixins){
 function createComponentFactory(options){
   var factory = function ComponentFactory(){
     Component.apply(this,arguments);
+    _bindOnMethods(factory.prototype, this);
   };
   factory.prototype = Object.create(Component.prototype);
   options.mixins = options.mixins || [];
@@ -141,6 +142,15 @@ function createComponentFactory(options){
   }
   mixinProto(factory.prototype, options.mixins);
   return factory;
+}
+
+function _bindOnMethods(proto, component){
+  Object.keys(proto).forEach(function(prop){
+    var val = proto[prop];
+    if(type(val) === 'function' || /^on[A-Z]\w*/.test(prop)){
+      component[prop] = val.bind(component);
+    }
+  });
 }
 
 function makeView(){
