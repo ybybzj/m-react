@@ -18,7 +18,7 @@ module.exports = function(gulp, $, cfg) {
               base: 'tmp', // optional, defaults to current dir
               entry: 'index.js', // the '.js' is optional
               type: 'umd',
-              name:'mithril',
+              name:'mReact',
               sourceMap: true
             })
             .pipe(source(gulpCfg.dest.outputFile))
