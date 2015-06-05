@@ -63,16 +63,20 @@ class Component{
   // componentWillDetached(el){
 
   // }
-  setState(state){
-    update.startComputation();
+  setState(state, silence){
+    if(!silence){
+      update.startComputation();
+    }
     this.state = extend(this.state, state);
-    update.endComputation();
+    if(!silence){
+      update.endComputation();
+    }
   }
 };
 
 export default function createComponent(options){
   if(type(options) !== 'object'){
-    throw new TypeError();
+    throw new TypeError('[createComponent]param should be a object! given: ' + options);
   }
   var component = {},
       factory = createComponentFactory(options);
@@ -83,6 +87,9 @@ export default function createComponent(options){
     };
     if(type(instance.componentWillUnmount) === 'function'){
       ctrl.onunload = instance.onunload.bind(instance, instance.componentWillUnmount);
+    }
+    if(type(instance.name) === 'string'){
+      ctrl.name = instance.name;
     }
     return ctrl;
   };
@@ -99,15 +106,15 @@ function mixinProto(proto, mixins){
   mixins = mixins.filter(function(m){return type(m) === 'object';});
   mixins.forEach(function(mixin){
     Object.keys(mixin).forEach(function(propName){
+      if(ignoreProps.indexOf(propName) !== -1){
+        return;
+      }
       if(extendMethods.indexOf(propName) !== -1){
         if(type(proto[propName]) === 'array'){
           proto[propName].push(mixin[propName]);
         }else{
           proto[propName] = type(proto[propName]) === 'function' ? [proto[propName], mixin[propName]] : [mixin[propName]];
         }
-      }
-      if(ignoreProps.indexOf(propName) !== -1){
-        return;
       }
       proto[propName] = mixin[propName];
     });
@@ -127,13 +134,13 @@ function mixinProto(proto, mixins){
     }
   });
 }
-
 function createComponentFactory(options){
   var factory = function ComponentFactory(){
     Component.apply(this,arguments);
     _bindOnMethods(factory.prototype, this);
   };
   factory.prototype = Object.create(Component.prototype);
+
   options.mixins = options.mixins || [];
   if(type(options.mixins) === 'array'){
     options.mixins = options.mixins.concat(options);

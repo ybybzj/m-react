@@ -241,12 +241,16 @@ function diffArrayItem(data, cached, parentElement, parentTag, index, shouldReat
 }
 
 function diffVNode(data, cached, parentElement, index, shouldReattach, editable, namespace, configs) {
-  var views = [], controllers = [];
+  var views = [],
+      controllers = [],
+      componentName;//record the final component name
   //handle the situation that vNode is a component({view, controller});
+  
   while(data.view){
     let view = data.view.$original || data.view;
     let controllerIndex = G.updateStrategy() == "diff" && cached.views ? cached.views.indexOf(view) : -1;
     let controller = controllerIndex > -1 ? cached.controllers[controllerIndex] : new (data.controller || NOOP);
+    componentName = controller.name;
     let key = data && data.attrs && data.attrs.key;
     data = (G.pendingRequests == 0 || G.forcing) || (cached && cached.controllers && cached.controllers.indexOf(controller) > -1) ? data.view(controller) : {tag: "placeholder"};
     if (data.subtree === "retain") return cached;
@@ -258,7 +262,7 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
     views.push(view);
     controllers.push(controller);
   }
-
+  
   //the result of view function must be a sigle root vNode,
   //not a array or string
   if(!data.tag && controllers.length) throw new Error('Component template must return a virtual element, not an array, string, etc.');
@@ -272,7 +276,8 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
       data.attrs.id != cached.attrs.id ||
       data.attrs.key != cached.attrs.key ||
       (G.updateStrategy() == "all" && (!cached.configContext || cached.configContext.retain !== true)) ||
-      (G.updateStrategy() == "diff" && cached.configContext && cached.configContext.retain === false)
+      (G.updateStrategy() == "diff" && cached.configContext && cached.configContext.retain === false) ||
+      type(componentName) === 'string' && cached.componentName != componentName
     ){
     if (cached.nodes.length) clear(cached.nodes, cached);
     // if (cached.configContext && type(cached.configContext.onunload) === 'function') cached.configContext.onunload();
@@ -346,6 +351,9 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
       };
     };
     configs.push(callback(data, [domNode, !isNew, context, cached]));
+  }
+  if(type(componentName) === 'string'){
+    cached.componentName = componentName;
   }
   return cached;
 }
