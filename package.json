@@ -1,16 +1,17 @@
 {
-  "name": "m-react",
+  "name": "@zj/m-react",
   "version": "0.1.0",
-  "description": "Mithril fork that is  modulized ",
+  "description": "Mithril fork that is  modulized and resembling React",
   "main": "dist/m-react.min.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "gulp"
   },
   "keywords": [
-    "mithril"
+    "mithril",
+    "react"
   ],
-  "author": "ybybzj",
+  "author": "Jackzj <ybybzj@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "browser-sync": "^2.7.6",
@@ -31,5 +32,12 @@
     "rqdir": "^1.0.4",
     "run-sequence": "^1.1.0",
     "vinyl-source-stream": "^1.1.0"
+  },
+  "publishConfig": {
+    "scope": "@zj",
+    "registry": "http://npm.qtang.net/"
+  },
+  "dependencies": {
+    "typology": "^1.0.0"
   }
 }
