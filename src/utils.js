@@ -1,4 +1,4 @@
-export { NOOP, type, slice, gettersetter, hasOwn, extend, removeVoidValue, toArray, getHash,matchReg };
+export { NOOP, type, slice, gettersetter, hasOwn, _extend, extend, removeVoidValue, toArray, getHash,matchReg };
 
 function NOOP() {};
 
@@ -50,19 +50,39 @@ function gettersetter(store) {
 function hasOwn(o, k) {
   return Object.prototype.hasOwnProperty.call(o, k);
 }
-function extend(target /*, o ...*/ ) {
-  var result = {}, l = arguments.length,
+function _extend(/*o ...*/ ) {
+  var l = arguments.length,
     i = 0,
-    k, o;
+    k, o,
+    target;
   while (i < l) {
+    target = arguments[i];
+    if(target === Object(target)){
+      break;
+    }
+    i++;
+  }
+  if(i === l){
+    return {};
+  }
+  
+  i++;
+  while(i < l){
     o = arguments[i++];
+    if(o !== Object(o)){
+      continue;
+    }
     for (k in o) {
       if (hasOwn(o, k)) {
-        result[k] = o[k];
+        target[k] = o[k];
       }
     }
   }
-  return result;
+  return target;
+}
+function extend(/*o ...*/ ) {
+  var args = slice(arguments);
+  return _extend.apply(null, [{}].concat(args));
 }
 function removeVoidValue(o){
   if(type(o) !== 'object'){
