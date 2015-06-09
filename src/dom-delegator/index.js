@@ -18,7 +18,7 @@ export default function DOMDelegator(doc){
     return new DOMDelegator(doc);
   }
 
-  doc = doc || $document;
+  doc = doc || $document || {documentElement: 1};//enable to run in nodejs;
   if(!doc.documentElement){
     throw new Error('[DOMDelegator]Invalid parameter "doc", should be a document object! given: ' + doc);
   }

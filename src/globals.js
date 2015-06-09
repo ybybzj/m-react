@@ -2,7 +2,7 @@ import {gettersetter} from './utils';
 import {Map} from './store';
 import DOMDelegator from './dom-delegator';
 import Batch from './update/batch';
-export var global = window || this;
+export var global = typeof window != "undefined" ? window : {};
 export var document = global.document;
 export var G = {
   pendingRequests: 0,

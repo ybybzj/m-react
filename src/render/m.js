@@ -38,7 +38,7 @@ export default function m(){
   Object.keys(attrs).forEach(function(attrName){
     var attrVal = attrs[attrName];
     if(attrName === classAttrName &&type(attrVal) !== 'string' && attrVal.trim() !== ''){
-      vNode.attrs[attrName] = (vNode.attrs[attrName] || '') + ' ' + attrsVal;
+      vNode.attrs[attrName] = (vNode.attrs[attrName] || '') + ' ' + attrVal;
     }else{
       vNode.attrs[attrName] = attrVal;
     }
