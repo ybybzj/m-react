@@ -1,4 +1,4 @@
-import { type, NOOP } from '../utils';
+import { type, NOOP, slice } from '../utils';
 import clear from './clear';
 import {
   document as $document,
@@ -243,12 +243,13 @@ function diffArrayItem(data, cached, parentElement, parentTag, index, shouldReat
 function diffVNode(data, cached, parentElement, index, shouldReattach, editable, namespace, configs) {
   var views = [],
       controllers = [],
-      componentName;//record the final component name
+      componentName;
+      //record the final component name
   //handle the situation that vNode is a component({view, controller});
   
   while(data.view){
     let view = data.view.$original || data.view;
-    let controllerIndex = G.updateStrategy() == "diff" && cached.views ? cached.views.indexOf(view) : -1;
+    let controllerIndex = cached.views ? cached.views.indexOf(view) : -1;
     let controller = controllerIndex > -1 ? cached.controllers[controllerIndex] : new (data.controller || NOOP);
     componentName = controller.name;
     let key = data && data.attrs && data.attrs.key;
@@ -268,24 +269,15 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
   if(!data.tag && controllers.length) throw new Error('Component template must return a virtual element, not an array, string, etc.');
   if(!data.attrs) data.attrs = {};
   if(!cached.attrs) cached.attrs = {};
-
   //if an element is different enough from the one in cache, recreate it
   if(
       data.tag != cached.tag ||
       !_hasSameKeys(data.attrs, cached.attrs)||
       data.attrs.id != cached.attrs.id ||
       data.attrs.key != cached.attrs.key ||
-      (G.updateStrategy() == "all" && (!cached.configContext || cached.configContext.retain !== true)) ||
-      (G.updateStrategy() == "diff" && cached.configContext && cached.configContext.retain === false) ||
       type(componentName) === 'string' && cached.componentName != componentName
     ){
     if (cached.nodes.length) clear(cached.nodes, cached);
-    // if (cached.configContext && type(cached.configContext.onunload) === 'function') cached.configContext.onunload();
-    // if (cached.controllers) {
-    //   for (let i = 0, controller; controller = cached.controllers[i]; i++) {
-    //     if (type(controller.onunload) === 'function') controller.onunload({preventDefault: NOOP});
-    //   }
-    // }
   }
 
   if(type(data.tag) !== 'string') return;
@@ -293,14 +285,13 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
   var isNew = (cached.nodes.length === 0),
       dataAttrKeys = Object.keys(data.attrs),
       hasKeys = dataAttrKeys.length > ("key" in data.attrs ? 1 : 0),
-      domNode;
+      domNode, shouldNewNodeReattach;
   if (data.attrs.xmlns) namespace = data.attrs.xmlns;
   else if (data.tag === "svg") namespace = "http://www.w3.org/2000/svg";
   else if (data.tag === "math") namespace = "http://www.w3.org/1998/Math/MathML";
 
   if(isNew){
-    if (data.attrs.is) domNode = namespace === undefined ? $document.createElement(data.tag, data.attrs.is) : $document.createElementNS(namespace, data.tag, data.attrs.is);
-    else domNode = namespace === undefined ? $document.createElement(data.tag) : $document.createElementNS(namespace, data.tag);
+    [domNode,shouldNewNodeReattach] = _newElement(parentElement, namespace, data, index);
     cached = {
       tag: data.tag,
       //set attributes first, then create children
@@ -326,7 +317,9 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
     if (cached.children && !cached.children.nodes) cached.children.nodes = [];
     //edge case: setting value on <select> doesn't work before children exist, so set it again after children have been created
     if (data.tag === "select" && "value" in data.attrs) setAttributes(domNode, data.tag, {value: data.attrs.value}, {}, namespace);
-    parentElement.insertBefore(domNode, parentElement.childNodes[index] || null);
+    
+    if(shouldNewNodeReattach)
+      parentElement.insertBefore(domNode, parentElement.childNodes[index] || null);
   }else{
     domNode = cached.nodes[0];
     if (hasKeys) setAttributes(domNode, data.tag, data.attrs, cached.attrs, namespace);
@@ -357,11 +350,31 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
   }
   return cached;
 }
+function _newElement(parentElement, namespace, data, index){
+  var domNode,
+      parentDataRef = (parentElement && parentElement.getAttribute('data-mref'))||'',
+      domNodeRef;
+  if(parentElement && parentElement.childNodes.length > index){
+    domNode = parentElement.childNodes[index];
+    if(domNode.tagName.toLowerCase() == data.tag.toLowerCase()){
+      domNodeRef = (domNode && domNode.getAttribute && domNode.getAttribute('data-mref'));
+      if(domNodeRef && domNodeRef.split('.').pop() == index){
+        return [domNode,false];
+      }
+    }
+    clear(slice(parentElement.childNodes, index));
+  }
+  if (data.attrs.is) domNode = namespace === undefined ? $document.createElement(data.tag, data.attrs.is) : $document.createElementNS(namespace, data.tag, data.attrs.is);
+  else domNode = namespace === undefined ? $document.createElement(data.tag) : $document.createElementNS(namespace, data.tag);
+  domNode.setAttribute('data-mref', parentDataRef + '.'+index);
+  return [domNode,true];
+}
 
 function diffTextNode(data, cached, parentElement,parentTag, index, shouldReattach, editable) {
   //handle text nodes
   var nodes;
   if (cached.nodes.length === 0) {
+    clear([parentElement.childNodes[index]]);
     if (data.$trusted) {
       nodes = injectHTML(parentElement, index, data);
     }

@@ -5,8 +5,7 @@ import {
 import {
   redraw,
   startComputation,
-  endComputation,
-  endFirstComputation
+  endComputation
 } from '../update';
 
 import componentize from './component';
@@ -14,7 +13,7 @@ import {slice, NOOP} from '../utils';
 
 var topComponent;
 
-export default function mount(root, component) {
+export default function mount(root, component, forceRecreation) {
   if (!root) throw new Error("Please ensure the DOM element exists before rendering a template into it.");
   var index = G.roots.indexOf(root);
   if (index < 0) index = G.roots.length;
@@ -41,7 +40,7 @@ export default function mount(root, component) {
   }
   
   if (!isPrevented) {
-    redraw.strategy("all");
+    // redraw.strategy("all");
     startComputation();
     G.roots[index] = root;
     if (arguments.length > 2) component = componentize(component, slice(arguments, 2));
@@ -53,8 +52,9 @@ export default function mount(root, component) {
     if (currentComponent === topComponent) {
       G.controllers[index] = controller;
       G.components[index] = component;
+      G.recreations[index] = forceRecreation;
     }
-    endFirstComputation();
+    endComputation();
     return G.controllers[index];
   }
 };

@@ -3,46 +3,53 @@ import {
   G
 } from '../globals';
 import {render} from '../render';
-
-import {requestAnimationFrame as raf, cancelAnimationFrame as cancelRaf} from './raf';
-var redrawing = false, lastRedrawId = null;
+import {FRAME_BUDGET} from './raf';
+//global render queue setting
+var renderQueue = G.renderQueue.onFinish(_onFinish);
+var redrawing = false;
 export default function update(force) {
-  if (redrawing) return;
+  if (redrawing === true) return;
   redrawing = true;
-  if (force) G.forcing = true;
-  //lastRedrawId is a positive number if a second redraw is requested before the next animation frame
-  //lastRedrawID is null if it's the first redraw and not an event handler
-  if (lastRedrawId && force !== true) {
-    if (lastRedrawId > 0) cancelRaf(lastRedrawId);
-    lastRedrawId = raf(_updateRoots);
-  }
-  else {
-    _updateRoots();
-    lastRedrawId = raf(function() {lastRedrawId = null});
-  }
+  if (force === true) G.forcing = true;
+  _updateRoots(force);
   redrawing = false;
-  G.forcing = false;
 };
-function _updateRoots(){
-  var root, component, controller;
-  if(type(G.computePreRedrawHook) === 'function'){
-    G.computePreRedrawHook();
-    G.computePreRedrawHook = null;
+function _updateRoots(force){
+  var root, component, controller, needRecreation,task;
+  if(renderQueue.length() === 0 || force === true){
+    if(type(G.computePreRedrawHook) === 'function'){
+      G.computePreRedrawHook();
+      G.computePreRedrawHook = null;
+    }
+  }
+  if(renderQueue.length() > 0){
+    renderQueue.stop();
   }
   for(let i = 0, l = G.roots.length; i < l ; i++){
     root = G.roots[i];
     component = G.components[i];
     controller = G.controllers[i];
+    needRecreation = G.recreations[i];
     if(controller){
       let args = component.controller && component.controller.$$args ? [controller].concat(component.controller.$$args) : [controller];
-      render(root, component.view ? component.view.apply(component,args) : '');
+      if(force !== true){
+        render(root, component.view ? component.view.apply(component, args) : '', needRecreation);
+      }else{
+        render(root, component.view ? component.view.apply(component, args) : '', needRecreation, true);
+      }
     }
+    //reset back to not destroy root's children
+    G.recreations[i] = void 0;
   }
+  if(force === true){
+    _onFinish();
+    G.forcing = false;
+  }
+}
 
+function _onFinish(){
   if(type(G.computePostRedrawHook) === 'function'){
     G.computePostRedrawHook();
     G.computePostRedrawHook = null;
   }
-  G.updateStrategy('diff');
-  lastRedrawId = null;
 }

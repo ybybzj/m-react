@@ -1,6 +1,7 @@
 import {gettersetter} from './utils';
 import {Map} from './store';
 import DOMDelegator from './dom-delegator';
+import Batch from './update/batch';
 export var global = window || this;
 export var document = global.document;
 export var G = {
@@ -13,9 +14,12 @@ export var G = {
   computePostRedrawHook : null,
   //mount registries
   roots: [],
+  recreations: [],
   components: [],
   controllers: [],
   //render registries
   domCacheMap: new Map(),
-  domDelegator: new DOMDelegator()
+  domDelegator: new DOMDelegator(),
+  //global batch render queue
+  renderQueue: new Batch()
 };
