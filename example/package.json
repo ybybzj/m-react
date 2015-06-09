@@ -10,10 +10,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@zj/rest-dao": "^0.1.0",
+    "baobab": "^1.1.0",
     "browserify-middleware": "^5.0.2",
     "compression": "^1.4.4",
     "express": "^4.12.4",
-    "mithrilify": "0.0.3",
-    "morgan": "^1.5.3"
+    "flyd": "^0.1.6",
+    "mithrilify": "0.0.4-mx-ver-fix",
+    "moment": "^2.10.3",
+    "morgan": "^1.5.3",
+    "typology": "^1.0.0"
   }
 }
