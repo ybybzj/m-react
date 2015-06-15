@@ -1,6 +1,6 @@
 {
   "name": "@zj/m-react",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Mithril fork that is  modulized and resembling React",
   "main": "dist/m-react.min.js",
   "scripts": {
@@ -31,13 +31,11 @@
     "rimraf": "^2.3.4",
     "rqdir": "^1.0.4",
     "run-sequence": "^1.1.0",
+    "tape": "^4.0.0",
     "vinyl-source-stream": "^1.1.0"
   },
   "publishConfig": {
     "scope": "@zj",
     "registry": "http://npm.qtang.net/"
-  },
-  "dependencies": {
-    "typology": "^1.0.0"
   }
 }

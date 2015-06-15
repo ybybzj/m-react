@@ -4,9 +4,22 @@ import {
 } from '../globals';
 import build from './build';
 import clear from './clear';
-
+//render queue setting
+G.renderQueue
+    .onFlush(_render)
+    .onAddTarget(_mergeTask);
 export default render;
-
+function render(root, vNode, forceRecreation, force){
+  var task = {
+    root: root,
+    vNode: vNode,
+    forceRecreation: forceRecreation
+  };
+  if(force === true){
+    return _render(task);
+  }
+  G.renderQueue.addTarget(task);
+}
 var html;
 var documentNode = {
   appendChild: function(node){
@@ -25,8 +38,8 @@ var documentNode = {
 };
 // var domNodeCache = [], vNodeCache = Object.create(null);
 var domCacheMap = G.domCacheMap;
-function render(root, vNode, forceRecreation){
-  
+function _render(task){
+  var {root, vNode, forceRecreation} = task;
   if(!root){
     throw new Error('Ensure the DOM element being passed to m.route/m.mount/m.render is not undefined.');
   }
@@ -37,9 +50,7 @@ function render(root, vNode, forceRecreation){
   if(isDocumentRoot && vNode.tag !== 'html') {
     vNode = {tag: 'html', attrs: {}, children: vNode};
   }
-  if(vNodeCache === undefined){
-    clear(domNode.childNodes);
-  }
+  
   if(forceRecreation){
     reset(domNode);
   }
@@ -51,10 +62,21 @@ function render(root, vNode, forceRecreation){
 }
 
 //helpers
-// function getVNodeKey(element){
-//   var index = domNodeCache.indexOf(element);
-//   return index < 0 ? domNodeCache.push(element) - 1 : index;
-// }
+
+function _mergeTask(queue, task){
+  var i, l, rootIdx = -1;
+  for(i = 0, l = queue.length; i < l; i++){
+    if(queue[i].root === task.root){
+      rootIdx = i;
+      break;
+    }
+  }
+  if(rootIdx > -1){
+    queue.splice(rootIdx, 1);
+  }
+  queue.push(task);
+  return queue;
+}
 
 function reset(root){
   clear(root.childNodes, domCacheMap.get(root));

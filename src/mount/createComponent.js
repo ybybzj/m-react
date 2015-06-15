@@ -1,6 +1,6 @@
 import * as update from '../update';
 import {type, extend, slice, removeVoidValue, toArray} from '../utils';
-var extendMethods = ['componentDidMount', 'componentWillUpdate','componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps'];
+var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate','componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps'];
 var ignoreProps = ['setState', 'mixins','onunload', 'setRoot'];
 
 class Component{
@@ -185,11 +185,14 @@ function makeView(){
        //cache previous instance
       cachedValue.props = instance.props;
       cachedValue.state = instance.state;
-      if(_executeFn(instance, 'shouldComponentUpdate', oldProps, oldState) === false){
-        return {subtree: 'retain'};
-      }
+      
       if(instance.root != null){
+        if(_executeFn(instance, 'shouldComponentUpdate', oldProps, oldState) === false){
+          return {subtree: 'retain'};
+        }
         _executeFn(instance, 'componentWillUpdate', instance.root, oldProps, oldState);
+      }else{
+        _executeFn(instance, 'componentWillMount', oldProps, oldState);
       }
       
       var resultView = _executeFn(instance, 'render', instance.props, instance.state);

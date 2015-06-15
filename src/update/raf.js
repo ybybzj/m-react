@@ -27,4 +27,4 @@ if(!cancelAnimationFrame){
   }
 }
 
-export {requestAnimationFrame, cancelAnimationFrame}
+export {requestAnimationFrame, cancelAnimationFrame, FRAME_BUDGET}
