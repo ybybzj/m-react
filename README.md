@@ -47,7 +47,7 @@ code:
         
     });
     
-    m.mount(document.body, MyComponent, {backgroundColor: yellow});
+    m.mount(document.body, <MyComponent backgroundColor="yellow"/>);
 ```
 output html:
 ```html
