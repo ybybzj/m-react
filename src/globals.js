@@ -4,6 +4,7 @@ import DOMDelegator from './dom-delegator';
 import Batch from './update/batch';
 export var global = typeof window != "undefined" ? window : {};
 export var document = global.document;
+export var runtime = typeof process != "undefined" ? "nodejs": typeof window != "undefined" ? "browser" : "unknown";
 export var G = {
   pendingRequests: 0,
   forcing: false,

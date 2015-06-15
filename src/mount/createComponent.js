@@ -1,6 +1,7 @@
 import * as update from '../update';
 import {type, extend, slice, removeVoidValue, toArray} from '../utils';
-var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate','componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps'];
+import {runtime as RT} from '../globals';
+var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate','componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps','getInitialProps', 'getInitialState'];
 var ignoreProps = ['setState', 'mixins','onunload', 'setRoot'];
 
 class Component{
@@ -64,11 +65,11 @@ class Component{
 
   // }
   setState(state, silence){
-    if(!silence){
+    if(!silence && RT === 'browser'){
       update.startComputation();
     }
     this.state = extend(this.state, state);
-    if(!silence){
+    if(!silence && RT === 'browser'){
       update.endComputation();
     }
   }
@@ -100,12 +101,18 @@ export default function createComponent(options){
 
 
 function mixinProto(proto, mixins){
+  var mixin;
   if(type(mixins) !== 'array'){
     mixins = slice(arguments, 1);
   }
   mixins = mixins.filter(function(m){return type(m) === 'object';});
-  mixins.forEach(function(mixin){
+  while(mixins.length > 0){
+    mixin = mixins.shift();
     Object.keys(mixin).forEach(function(propName){
+      if(propName === 'mixins'){
+          mixins.unshift.apply(mixins, [].concat(mixin[propName]));
+          return;
+        }
       if(ignoreProps.indexOf(propName) !== -1){
         return;
       }
@@ -118,7 +125,8 @@ function mixinProto(proto, mixins){
       }
       proto[propName] = mixin[propName];
     });
-  });
+  }
+
   extendMethods.forEach(function(methodName){
     if(type(proto[methodName]) === 'array'){
       var methods = proto[methodName].filter(function(p){
@@ -138,16 +146,17 @@ function createComponentFactory(options){
   var factory = function ComponentFactory(){
     Component.apply(this,arguments);
     _bindOnMethods(factory.prototype, this);
-  };
+  }, mixins;
   factory.prototype = Object.create(Component.prototype);
 
-  options.mixins = options.mixins || [];
-  if(type(options.mixins) === 'array'){
-    options.mixins = options.mixins.concat(options);
+  mixins = options.mixins || [];
+  delete options.mixins;
+  if(type(mixins) === 'array'){
+    mixins = mixins.concat(options);
   }else{
-    options.mixins = [options.mixins, options];
+    mixins = [mixins, options];
   }
-  mixinProto(factory.prototype, options.mixins);
+  mixinProto(factory.prototype, mixins);
   return factory;
 }
 
