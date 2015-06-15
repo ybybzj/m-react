@@ -8,7 +8,6 @@ import {
   endComputation
 } from '../update';
 
-import componentize from './component';
 import {slice, NOOP} from '../utils';
 
 var topComponent;
@@ -43,7 +42,7 @@ export default function mount(root, component, forceRecreation) {
     // redraw.strategy("all");
     startComputation();
     G.roots[index] = root;
-    if (arguments.length > 2) component = componentize(component, slice(arguments, 2));
+    // if (arguments.length > 2) component = componentize(component, slice(arguments, 2));
     let currentComponent = topComponent = component = component || {controller: NOOP};
     let constructor = component.controller || NOOP;
     let controller = new constructor;
