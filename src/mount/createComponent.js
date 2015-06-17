@@ -2,6 +2,7 @@ import * as update from '../update';
 import {type, extend, slice, removeVoidValue, toArray} from '../utils';
 import {runtime as RT} from '../globals';
 var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate','componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps','getInitialProps', 'getInitialState'];
+var pipedMethods = ['getInitialProps', 'getInitialState'];
 var ignoreProps = ['setState', 'mixins','onunload', 'setRoot'];
 
 class Component{
@@ -110,13 +111,13 @@ function mixinProto(proto, mixins){
     mixin = mixins.shift();
     Object.keys(mixin).forEach(function(propName){
       if(propName === 'mixins'){
-          mixins.unshift.apply(mixins, [].concat(mixin[propName]));
-          return;
-        }
+        mixins = _addToHead([].concat(mixin[propName]), mixins);
+        return;
+      }
       if(ignoreProps.indexOf(propName) !== -1){
         return;
       }
-      if(extendMethods.indexOf(propName) !== -1){
+      if(extendMethods.indexOf(propName) !== -1 || pipedMethods.indexOf(propName) !== -1){
         if(type(proto[propName]) === 'array'){
           proto[propName].push(mixin[propName]);
         }else{
@@ -132,13 +133,7 @@ function mixinProto(proto, mixins){
       var methods = proto[methodName].filter(function(p){
         return type(p) === 'function';
       });
-      proto[methodName] = function(){
-        var args = slice(arguments),
-            self = this;
-        methods.forEach(function(method){
-          method.apply(self, args);
-        });
-      };
+      proto[methodName] = _compose(pipedMethods.indexOf(methodName) !== -1,methods);
     }
   });
 }
@@ -160,14 +155,6 @@ function createComponentFactory(options){
   return factory;
 }
 
-function _bindOnMethods(proto, component){
-  Object.keys(proto).forEach(function(prop){
-    var val = proto[prop];
-    if(type(val) === 'function' || /^on[A-Z]\w*/.test(prop)){
-      component[prop] = val.bind(component);
-    }
-  });
-}
 
 function makeView(){
   var cachedValue = {};
@@ -212,9 +199,41 @@ function makeView(){
   };
 }
 
+//heplers
+function _bindOnMethods(proto, component){
+  Object.keys(proto).forEach(function(prop){
+    var val = proto[prop];
+    if(type(val) === 'function' || /^on[A-Z]\w*/.test(prop)){
+      component[prop] = val.bind(component);
+    }
+  });
+}
 function _executeFn(obj, methodName){
   var args = slice(arguments, 2);
   if(type(obj[methodName]) === 'function'){
     return obj[methodName].apply(obj, args);
   }
+}
+function _addToHead(arrToAdd, targetArr){
+  var i, l= arrToAdd.length, arr;
+  for(i = 0; i < l; i++){
+    arr = arrToAdd[i];
+    if(targetArr.indexOf(arr) === -1){
+      targetArr.unshift(arr);
+    }
+  }
+  return targetArr;
+}
+function _compose(isPiped, fns){
+  return function _composed(){
+    var args = slice(arguments,0),
+        self = this,
+        i = 0 ,l = fns.length, fn, result = args;
+    for(; i < l; i++){
+      fn = fns[i];
+      result = fn.apply(self, args);
+      args = isPiped ? result : args;
+    }
+    return result;
+  };
 }
