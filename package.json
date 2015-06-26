@@ -1,6 +1,6 @@
 {
   "name": "@zj/m-react",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Mithril fork that is  modulized and resembling React",
   "main": "dist/m-react.min.js",
   "scripts": {
