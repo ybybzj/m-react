@@ -46,7 +46,7 @@ function _render(task){
   var configs = [],
       isDocumentRoot = root === $document,
       domNode = isDocumentRoot || root === $document.documentElement ? documentNode : root,
-      vNodeCache = domCacheMap.get(domNode);
+      vNodeCache;
   if(isDocumentRoot && vNode.tag !== 'html') {
     vNode = {tag: 'html', attrs: {}, children: vNode};
   }
@@ -54,7 +54,7 @@ function _render(task){
   if(forceRecreation){
     reset(domNode);
   }
-  vNodeCache = build(domNode, null, undefined, undefined, vNode, vNodeCache, false, 0, null, undefined, configs);
+  vNodeCache = build(domNode, null, undefined, undefined, vNode, domCacheMap.get(domNode), false, 0, null, undefined, configs);
   configs.forEach(function(onRender){
     onRender();
   });

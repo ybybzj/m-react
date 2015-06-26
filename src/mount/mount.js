@@ -8,7 +8,7 @@ import {
   endComputation
 } from '../update';
 
-import {slice, NOOP} from '../utils';
+import {type, slice, NOOP} from '../utils';
 
 var topComponent;
 
