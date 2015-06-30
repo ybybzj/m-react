@@ -2,7 +2,7 @@ import * as update from '../update';
 import {type, extend, slice, removeVoidValue, toArray} from '../utils';
 import {runtime as RT} from '../globals';
 var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate','componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps','getInitialProps', 'getInitialState'];
-var pipedMethods = ['getInitialProps', 'getInitialState'];
+var pipedMethods = ['getInitialProps', 'getInitialState', 'componentWillReceiveProps'];
 var ignoreProps = ['setState', 'mixins','onunload', 'setRoot'];
 
 class Component{
@@ -117,12 +117,13 @@ function mixinProto(proto, mixins){
       if(ignoreProps.indexOf(propName) !== -1){
         return;
       }
-      if(extendMethods.indexOf(propName) !== -1 || pipedMethods.indexOf(propName) !== -1){
+      if(extendMethods.indexOf(propName) !== -1){
         if(type(proto[propName]) === 'array'){
           proto[propName].push(mixin[propName]);
         }else{
           proto[propName] = type(proto[propName]) === 'function' ? [proto[propName], mixin[propName]] : [mixin[propName]];
         }
+        return;
       }
       proto[propName] = mixin[propName];
     });
