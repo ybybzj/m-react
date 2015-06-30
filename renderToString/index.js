@@ -18,13 +18,13 @@ function isFunction(o){
 }
 
 function createAttrString(attrs, ref) {
-  var refStr = ref ? ' data-mref=' + ref : '';
+  var refStr = ref != null ? ' data-mref=' + ref : '';
   if (!attrs || !Object.keys(attrs).length) {
     return '' + refStr;
   }
 
   return Object.keys(attrs).map(function(name) {
-    if (typeof attrs[name] === 'function') {
+    if (typeof attrs[name] === 'function' || attrs[name] == null) {
       return;
     }
     if (typeof attrs[name] === 'boolean') {
@@ -52,15 +52,7 @@ function createTrustedContent(view) {
   }).join('');
 }
 
-function createChildrenContent(view, idx) {
-  if(isArray(view.children) && !view.children.length) {
-    return '';
-  }
-
-  return render(view.children, idx);
-}
-
-function render(view, idx, parentIdx) {
+function render(view, idx) {
   var type = typeof view;
   if (type === 'string' || type === 'number' || type === 'boolean') {
     return view;
@@ -74,9 +66,10 @@ function render(view, idx, parentIdx) {
     return createTrustedContent(view);
   }
 
+
   if (isArray(view)) {
     return view.map(function(v, i){
-      return idx != null ? render(v, i, idx):render(v);
+      return idx != null ? render(v, i+idx):render(v);
     }).join('');
   }
   var controller, hasController;
@@ -96,8 +89,9 @@ function render(view, idx, parentIdx) {
   if(!view.tag && hasController){
     throw new Error('[renderToString] Component template must return a virtual element, not an array, string, etc.!');
   }
-  var children = createChildrenContent(view, idx);
-  var ref = idx != null ? normalize(parentIdx) + '.'+idx : null;
+  var ref = idx != null ? idx : null;
+  var children = render(view.children, 0);
+  
   if (!children.length && VOID_TAGS.indexOf(view.tag) >= 0) {
     return '<' + view.tag + createAttrString(view.attrs, ref) + '>';
   }

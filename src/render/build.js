@@ -285,13 +285,13 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
   var isNew = (cached.nodes.length === 0),
       dataAttrKeys = Object.keys(data.attrs),
       hasKeys = dataAttrKeys.length > ("key" in data.attrs ? 1 : 0),
-      domNode, shouldNewNodeReattach;
+      domNode, newNodeIdx;
   if (data.attrs.xmlns) namespace = data.attrs.xmlns;
   else if (data.tag === "svg") namespace = "http://www.w3.org/2000/svg";
   else if (data.tag === "math") namespace = "http://www.w3.org/1998/Math/MathML";
 
   if(isNew){
-    [domNode,shouldNewNodeReattach] = _newElement(parentElement, namespace, data, index);
+    [domNode,newNodeIdx] = _newElement(parentElement, namespace, data, index);
     cached = {
       tag: data.tag,
       //set attributes first, then create children
@@ -318,8 +318,8 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
     //edge case: setting value on <select> doesn't work before children exist, so set it again after children have been created
     if (data.tag === "select" && "value" in data.attrs) setAttributes(domNode, data.tag, {value: data.attrs.value}, {}, namespace);
     
-    if(shouldNewNodeReattach)
-      parentElement.insertBefore(domNode, parentElement.childNodes[index] || null);
+    if(newNodeIdx != null)
+      parentElement.insertBefore(domNode, parentElement.childNodes[newNodeIdx] || null);
   }else{
     domNode = cached.nodes[0];
     if (hasKeys) setAttributes(domNode, data.tag, data.attrs, cached.attrs, namespace);
@@ -350,23 +350,33 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
   return cached;
 }
 function _newElement(parentElement, namespace, data, index){
-  var domNode,
-      parentDataRef = (parentElement && parentElement.getAttribute('data-mref'))||'',
-      domNodeRef;
-  if(parentElement && parentElement.childNodes.length > index){
-    domNode = parentElement.childNodes[index];
-    if(domNode.tagName.toLowerCase() == data.tag.toLowerCase()){
-      domNodeRef = (domNode && domNode.getAttribute && domNode.getAttribute('data-mref'));
-      if(domNodeRef && domNodeRef.split('.').pop() == index){
-        return [domNode,false];
+  var domNode, domNodeIndex, insertIdx = index;
+  if(parentElement && parentElement.childNodes.length){
+    domNodeIndex = _findDomNodeByRef(parentElement, index);
+    if(domNodeIndex && domNodeIndex[0]){
+      insertIdx = domNodeIndex[1];
+      if(domNodeIndex[0].tagName.toLowerCase() == data.tag.toLowerCase()){
+        return [domNodeIndex[0],null];
+      }else{
+        clear([domNodeIndex[0]]);
       }
     }
-    clear(slice(parentElement.childNodes, index));
   }
   if (data.attrs.is) domNode = namespace === undefined ? $document.createElement(data.tag, data.attrs.is) : $document.createElementNS(namespace, data.tag, data.attrs.is);
   else domNode = namespace === undefined ? $document.createElement(data.tag) : $document.createElementNS(namespace, data.tag);
-  domNode.setAttribute('data-mref', parentDataRef + '.'+index);
-  return [domNode,true];
+  domNode.setAttribute('data-mref', index);
+  return [domNode, insertIdx];
+}
+function _findDomNodeByRef(parentElement, ref){
+  var i = 0, l = parentElement.childNodes.length,
+      childNode;
+  for(;i < l; i++){
+    childNode = parentElement.childNodes[i];
+    if(childNode.getAttribute && childNode.getAttribute('data-mref') == ref){
+      return [childNode, i];
+    }
+  }
+  return null;
 }
 
 function diffTextNode(data, cached, parentElement,parentTag, index, shouldReattach, editable) {
