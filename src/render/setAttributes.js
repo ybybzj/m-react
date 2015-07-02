@@ -19,15 +19,9 @@ export default function setAttributes(domNode, tag, dataAttrs, cachedAttrs, name
           // bind handler to domNode for a delegation event
         }else if((evMatch = matchReg(attrName,evAttrReg)) && evMatch[1].length){
           let evType = evMatch[1].toLowerCase();
+          domDelegator.off(domNode, evType);
           if(isHandler(dataAttr)){
-            if(isHandler(cachedAttr)){
-              domDelegator.off(domNode, evType, cachedAttr);
-            }
             domDelegator.on(domNode, evType, dataAttr);
-          }else{
-            if(isHandler(cachedAttr)){
-              domDelegator.off(domNode, evType, cachedAttr);
-            }
           }
         }
         //handle `style: {...}`

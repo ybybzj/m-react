@@ -27,13 +27,13 @@ ProxyEvent.prototype = extend(ProxyEvent.prototype, {
   init: function(ev) {
     synthesizeEvProps(this, ev, 'all');
     this.originalEvent = ev;
-    this._bubbles = true;
+    this._bubbles = false;
   },
   preventDefault: function() {
     return this.originalEvent.preventDefault();
   },
-  stopPropagation: function() {
-    this._bubbles = false;
+  startPropagation: function() {
+    this._bubbles = true;
   }
 });
 
