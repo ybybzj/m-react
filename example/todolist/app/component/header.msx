@@ -1,0 +1,29 @@
+var m = mReact;
+var ESCAPE_KEY = 27;
+var ENTER_KEY = 13;
+module.exports = m.createComponent({
+  render: function(){
+    return (
+      <header id="header" class="header">
+        <h1>todos</h1>
+        <input
+          id="new-todo"
+          class="new-todo"
+          placeholder="What needs to be done?"
+          evKeyDown={this.onHandleNewTodoKeyDown}
+          autoFocus={true}
+        />
+      </header>
+    );
+  },
+  onHandleNewTodoKeyDown: function(e){
+    var val = e.target.value.trim();
+    if(event.which === ESCAPE_KEY){
+      e.target.value = null;
+    }else if(event.which === ENTER_KEY && val !== ''){
+      if(this.props.onTodoCreated)
+          this.props.onTodoCreated({val: val});
+      e.target.value = null;
+    }
+  },
+});

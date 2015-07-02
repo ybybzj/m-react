@@ -1,0 +1,68 @@
+// var container = document.getElementById('container');
+// var m = require('../../build/m-react');
+var m = mReact;
+var createPage = require('./createPageComponent');
+var MyApp = module.exports = createPage({
+  cursors:{
+      temp:'temp'
+    },
+  facets:{
+    celsius: 'celsius',
+    fahrenheit: 'fahrenheit'
+  },
+  signals:['input'],
+  render: function(props, state) {
+    return (
+      <div>
+        <div className="mui-appbar mui-appbar-line-height mui-text-headline mui-text-white">DEMO</div>
+        <form className="mui-form-inline">
+        <div class="mui-form-group">
+          <input type="text" class="mui-form-control" evInput={this.signals.input} value={state.temp}/>
+          <label class="mui-form-floating-label">Temperature</label>
+          <span className="mui-text-subhead">K</span>
+        </div>
+          
+        </form>
+        <br/>
+        <TemperatureConverter value={state.temp}>
+          {"celsius: " + state.celsius}
+          <br/>
+          {"fahrenheit: " + state.fahrenheit}
+        </TemperatureConverter>
+      </div>
+    );
+  }
+});
+
+//components
+var TemperatureConverter = m.createComponent({
+  render: function(props, state) {
+    return (
+      <div ref="temp-converter">
+      </div>
+    );
+  },
+  getInitialState: function(){
+    return {date: (new Date()).toString()};
+  },
+  componentDidMount:function(el){
+    // var self = this;
+    console.log('componentDidMount');
+    m.render(el, this.props.children);
+    // this.timer = setInterval(function(){
+    //   self.setState({
+    //     date: (new Date()).toString()
+    //   });
+    // },1000);
+  },
+  componentWillUpdate:function(el){
+    console.log('componentWillUpdate');
+    console.log(el);
+    console.log(this.props.children);
+    m.render(el, this.props.children);
+  },
+  componentWillUnmount: function(e){
+    // clearTimeout(this.timer);
+  }
+});
+// m.mount(document.getElementById('container'), MyApp);

@@ -1,0 +1,95 @@
+var m = mReact;
+var createPage = require('./createPageComponent');
+var TodoItem = require('./component/todoItem.msx');
+var TodoFooter = require('./component/footer.msx');
+var TodoHeader = require('./component/header.msx');
+var page = require('page');
+
+var App = createPage({
+  signals:[
+    'filterChanged',
+    'completedCleared',
+    'allToggled',
+    'todoToggled',
+    'todoEdited',
+    'todoDestroyed',
+    'todoSaved',
+    'todoCanceled',
+    'todoCreated'
+    ],
+  facets:{
+    shownTodos: 'showingTodos',
+    activeTodoCount: 'activeTodoCount',
+    completedCount: 'completedCount'
+  },
+  cursors:{
+    filter: 'filter'
+  },
+  // getInitialState: function(){
+  //   return {editText:''};
+  // },
+  render: function () {
+    var footer;
+    var main;
+    var todos = this.state.todos;
+
+
+    var todoItems = this.state.shownTodos.map(function (todo) {
+      return (
+        <TodoItem
+          key={todo.id}
+          todo={todo}
+          onToggle={this.signals.todoToggled}
+          onDestroy={this.signals.todoDestroyed}
+          onEdit={this.signals.todoEdited}
+          onSave={this.signals.todoSaved}
+          onCancel={this.signals.todoCanceled}
+        />
+      );
+    }, this);
+
+
+    if (this.state.activeTodoCount || this.state.completedCount) {
+      footer =
+        <TodoFooter
+          count={this.state.activeTodoCount}
+          completedCount={this.state.completedCount}
+          filter={this.state.filter}
+          onClearCompleted={this.signals.completedCleared}
+        />;
+    }
+
+    if (todoItems.length) {
+      main = (
+        <section id="main" className="main">
+          <input
+            id="toggle-all"
+            class="toggle-all"
+            type="checkbox"
+            evChange={this.onToggleAll}
+            checked={this.state.activeTodoCount === 0}
+          />
+          <ul id="todo-list" class="todo-list">
+            {todoItems}
+          </ul>
+        </section>
+      );
+    }
+
+    return (
+      <div>
+        <TodoHeader
+          onTodoCreated={this.signals.todoCreated}
+        />
+        {main}
+        {footer}
+      </div>
+    );
+  },
+  
+  onToggleAll: function(e){
+    var completed = e.target.checked;
+    this.signals.allToggled(!!completed);
+  }
+});
+module.exports = App;

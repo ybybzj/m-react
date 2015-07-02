@@ -1,0 +1,28 @@
+{
+  "name": "m-react-todolist",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@zj/m-react-mixins": "^0.1.3",
+    "@zj/r-stream": "^0.1.1",
+    "@zj/s-flow": "^0.2.3",
+    "browserify-middleware": "^6.0.0",
+    "compression": "^1.5.0",
+    "express": "^4.13.0",
+    "fnkit": "git://github.com/ybybzj/fnkit.git#master",
+    "mithrilify": "0.0.4",
+    "moment": "^2.10.3",
+    "morgan": "^1.6.0",
+    "page": "^1.6.3",
+    "todomvc-app-css": "^2.0.1",
+    "todomvc-common": "^1.0.2",
+    "typology": "^1.0.0"
+  }
+}

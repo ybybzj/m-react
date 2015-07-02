@@ -1,0 +1,54 @@
+var m = mReact;
+var cx = require('../utils').classNames;
+var Footer = m.createComponent({
+  render: function(props){
+    var activeTodoWord = props.count > 1 ? 'items' : 'item';
+    var clearButton = null;
+
+    if (props.completedCount > 0) {
+      clearButton = (
+        <button
+          id="clear-completed"
+          class="clear-completed"
+          evClick={props.onClearCompleted}>
+          Clear completed
+        </button>
+      );
+    }
+    return (
+        <footer id="footer" class="footer">
+          <span id="todo-count" class="todo-count">
+            <strong>{props.count}</strong> {activeTodoWord} left
+          </span>
+          <ul id="filters" class="filters">
+            <li>
+              <a
+                href="/"
+                className={cx({selected: props.filter === 'all'})}>
+                  All
+              </a>
+            </li>
+            {' '}
+            <li>
+              <a
+                href="/active"
+                className={cx({selected: props.filter === 'active'})}>
+                  Active
+              </a>
+            </li>
+            {' '}
+            <li>
+              <a
+                href="/completed"
+                className={cx({selected: props.filter === 'completed'})}>
+                  Completed
+              </a>
+            </li>
+          </ul>
+          {clearButton}
+        </footer>
+      );
+  }
+});
+
+module.exports = Footer;
