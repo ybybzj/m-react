@@ -162,6 +162,8 @@ function makeView(){
       // factory = createComponentFactory(options);
   return function componentView(ctrl, props, children){
     var instance = ctrl.instance,
+        oldProps = cachedValue.props,
+        oldState = cachedValue.state,
         config = function(node, isInitialized, context){
           _executeFn(instance, 'setRoot', node);
           if(!isInitialized){
@@ -170,13 +172,11 @@ function makeView(){
               context.onunload = instance.componentWillDetached.bind(instance, node);
             }
           }else{
-            _executeFn(instance, 'componentDidUpdate', node);
+            _executeFn(instance, 'componentDidUpdate', node, oldProps, oldState);
           }
           
           
-        },
-        oldProps = cachedValue.props,
-        oldState = cachedValue.state;
+        };
       //updateProps
       instance.setProps(props, children);
        //cache previous instance

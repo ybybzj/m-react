@@ -255,7 +255,7 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
     let key = data && data.attrs && data.attrs.key;
     data = (G.pendingRequests == 0 || G.forcing) || (cached && cached.controllers && cached.controllers.indexOf(controller) > -1) ? data.view(controller) : {tag: "placeholder"};
     if (data.subtree === "retain") return cached;
-    if (key) {
+    if (key != null) {
       if (!data.attrs) data.attrs = {};
       data.attrs.key = key;
     }
