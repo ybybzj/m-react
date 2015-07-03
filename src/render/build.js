@@ -43,7 +43,7 @@ export default function build(parentElement, parentTag, parentCache, parentIndex
     dataType = type(data),
     intact;
   if (cached == null || cachedType !== dataType) { // validate cached
-    cached = validateCached(data, cached, index, parentIndex, parentCache, dataType);
+    cached = clearCached(data, cached, index, parentIndex, parentCache, dataType);
   }
   if (dataType === 'array') { // children diff
     data = _recursiveFlatten(data);
@@ -59,7 +59,7 @@ export default function build(parentElement, parentTag, parentCache, parentIndex
   return cached;
 }
 //diff functions
-function validateCached(data, cached, index, parentIndex, parentCache, dataType) {
+function clearCached(data, cached, index, parentIndex, parentCache, dataType) {
   var offset, end;
   if (cached != null) {
     if (parentCache && parentCache.nodes) {

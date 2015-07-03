@@ -2,6 +2,7 @@ export { NOOP, type, slice, gettersetter, hasOwn, _extend, extend, removeVoidVal
 
 function NOOP() {};
 
+var typeReg = /^\[object (\w+)\]$/;
 function type(o) {
   if (o === null) {
     return 'null';
@@ -12,28 +13,12 @@ function type(o) {
   if (o !== o) {
     return 'NaN';
   }
-  var typeStr = Object.prototype.toString.call(o);
-  switch (typeStr) {
-    case '[object Object]':
-      return 'object';
-    case '[object Array]':
-      return 'array';
-    case '[object String]':
-      return 'string';
-    case '[object Function]':
-      return 'function';
-    case '[object Number]':
-      return 'number';
-    case '[object RegExp]':
-      return 'regexp';
-    default:
-      return 'unknown';
-  }
+  var tm = Object.prototype.toString.call(o).match(typeReg);
+  return tm == null ? 'unknown': tm[1].toLowerCase();
 }
-
+var _slice = Array.prototype.slice;
 function slice() {
-  var args = [].slice.call(arguments, 1);
-  return [].slice.apply(arguments[0], args);
+  return _slice.apply(arguments[0], _slice.call(arguments, 1));
 };
 
 function gettersetter(store) {

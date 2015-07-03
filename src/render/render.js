@@ -61,6 +61,11 @@ function _render(task){
   domCacheMap.set(domNode, vNodeCache);
 }
 
+function reset(root){
+  clear(root.childNodes, domCacheMap.get(root));
+  domCacheMap.remove(root);
+}
+
 //helpers
 
 function _mergeTask(queue, task){
@@ -78,7 +83,3 @@ function _mergeTask(queue, task){
   return queue;
 }
 
-function reset(root){
-  clear(root.childNodes, domCacheMap.get(root));
-  domCacheMap.remove(root);
-}

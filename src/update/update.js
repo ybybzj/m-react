@@ -31,12 +31,8 @@ function _updateRoots(force){
     controller = G.controllers[i];
     needRecreation = G.recreations[i];
     if(controller){
-      let args = component.controller && component.controller.$$args ? [controller].concat(component.controller.$$args) : [controller];
-      if(force !== true){
-        render(root, component.view ? component.view.apply(component, args) : '', needRecreation);
-      }else{
-        render(root, component.view ? component.view.apply(component, args) : '', needRecreation, true);
-      }
+      // let args = component.controller && component.controller.$$args ? [controller].concat(component.controller.$$args) : [controller];
+      render(root, component.view ? component.view(controller) : '', needRecreation, force);
     }
     //reset back to not destroy root's children
     G.recreations[i] = void 0;

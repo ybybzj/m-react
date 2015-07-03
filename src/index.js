@@ -4,12 +4,7 @@ import {mount, component, createComponent} from './mount';
 import {G} from './globals';
 import {_extend} from './utils';
 var mReact = m;
-// var commonEvents = [
-//     "blur", "change", "click",  "contextmenu", "dblclick",
-//     "error","focus", "focusin", "focusout", "input", "keydown",
-//     "keypress", "keyup", "load", "mousedown", "mouseup",
-//     "resize", "select", "submit", "unload"
-// ];
+
 mReact.render = render;
 mReact.redraw = redraw;
 mReact.mount = mount;
