@@ -66,4 +66,4 @@ output html:
 
 More examples
 ------
-TodoMVC[https://github.com/ybybzj/m-react-todomvc](https://github.com/ybybzj/m-react-todomvc)
+TodoMVC:  [https://github.com/ybybzj/m-react-todomvc](https://github.com/ybybzj/m-react-todomvc)
