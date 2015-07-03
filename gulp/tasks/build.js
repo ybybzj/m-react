@@ -1,7 +1,7 @@
 var source = require('vinyl-source-stream');
 var gulpUtil = require('gulp-util');
 var esperantoBundle = require('esperanto-bundle-stream');
-var babelWhitelist = ['es6.arrowFunctions', 'es6.blockScoping', 'es6.classes', 'es6.constants', 'es6.destructuring', 'es6.parameters.default', 'es6.parameters.rest', 'es6.properties.shorthand', 'es6.templateLiterals'];
+var babelWhitelist = ['es6.arrowFunctions', 'es6.blockScoping', 'es6.classes', 'es6.constants', 'es6.destructuring', 'es6.parameters', 'es6.properties.shorthand', 'es6.templateLiterals'];
 var babelCfg = {
   whitelist: babelWhitelist,
   loose: "all"
