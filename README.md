@@ -2,13 +2,14 @@ Introduction
 ======
 mReact is a fork library of [Mithril](https://lhorie.github.io/mithril/getting-started.html), which is  a client-side Javascript MVC framework and provides a templating engine with a virtual DOM diff implementation for performant rendering, utilities for high-level modelling via functional composition, as well as support for routing and componentization.
 
-For people used to [React](https://facebook.github.io/react/)(by facebook), Mithril is just a little bit quirky. And sometimes, we just need a pure render engine with a virtual DOM diff implementation. React though is great, is too big for mobile site(around 80k by gzip).
+For people used to [React](https://facebook.github.io/react/)(by facebook), Mithril may feels a little bit quirky. And sometimes, I just need a pure render engine with a virtual DOM diff implementation. React is great, but is too big for mobile site(around 80k by gzip). 
 
-Hence, here is the "mReact". 
-* Only 7.7k by gzipped.
-* Similar usage to React, include lifecycle methods, createCompoenet factory method(similar to createClass)
+Hence, here is the "mReact", a small React-like library, thanks to Mithril. 
+* Only 8.6k by gzipped.
+* Usage resembles React, include lifecycle methods, `createComponent` factory method(similar to `createClass`)
 * Support MSX syntax(similar to JSX) by using [MSX by Jonathan Buchanan](https://github.com/insin/msx)
-* Support Event Delegation(propperty name start with 'ev')
+* Support Event Delegation(attribute name starts with 'ev')
+* Support Server Rendering, and dom will be reserved properly during client code execution.
 
 Usage
 ------
@@ -49,12 +50,16 @@ code:
     
     m.mount(document.body, <MyComponent backgroundColor="yellow"/>);
 ```
+on server:
+```javascript
+    var renderToString = require('m-react/renderToString');
+    var outputHTML = renderToString(m.component(MyComponent, {backgroundColor: 'yellow'}), 0);//add second param to enable dom reservation in browser, do not pass this parameter if only want to output pure html string
+    ...
+```
 output html:
 ```html
-    <body>
-         <div>
-            <input type="text"/>
-            <p style="background-color:yellow">Wed May 27 2015 15:01:23 GMT+0800 (CST)</p>
-        </div>
-    </body>
+    <div data-mref="0">
+        <input type="text" data-mref="0"/>
+        <p style="background-color:yellow" data-mref="1">Wed May 27 2015 15:01:23 GMT+0800 (CST)</p>
+    </div>
 ```
