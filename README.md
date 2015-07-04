@@ -11,7 +11,7 @@ Thereby, here is the "mReact", a small React-like library, thanks to Mithril.
 * Support Event Delegation(attribute name starts with 'ev')
 * Support Server Rendering, and dom will be reserved properly during client code execution.
 
-I'm not trying to build a drop-in replacement for React, just mimic the taste. Parts of Mithril other than rendering are removed. So how to routing or how to manage model layer is all up to you.
+I'm not trying to build a drop-in replacement for React, just mimic the taste. Parts of Mithril other than rendering are removed. So how to manage routing or model layer is all up to you.
 Usage
 ------
 code:
