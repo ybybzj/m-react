@@ -63,6 +63,9 @@ Batch.prototype.flush = function() {
   }
 };
 Batch.prototype.scheduleFlush = function() {
+  if(this._tick){
+    cancelRaf(this._tick);
+  }
   this._tick = raf(this.flush);
   return this._tick;
 };

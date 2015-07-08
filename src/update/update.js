@@ -2,7 +2,7 @@ import {type} from '../utils';
 import {
   G
 } from '../globals';
-import {render} from '../render';
+import {render, _render} from '../render/render';
 import {FRAME_BUDGET} from './raf';
 //global render queue setting
 var renderQueue = G.renderQueue.onFinish(_onFinish);
@@ -31,7 +31,20 @@ function _updateRoots(force){
     controller = G.controllers[i];
     needRecreation = G.recreations[i];
     if(controller){
-      // let args = component.controller && component.controller.$$args ? [controller].concat(component.controller.$$args) : [controller];
+      if(typeof controller.instance === 'object'){
+        controller.instance.redraw = function componentRedraw(){
+          renderQueue.addTarget({
+            mergeType: 0,// contain
+            processor: _render,
+            root: root,
+            params:[{
+              root: root,
+              vNode: component.view ? component.view(controller) : '',
+              forceRecreation: false
+            }]
+          });
+        };
+      }
       render(root, component.view ? component.view(controller) : '', needRecreation, force);
     }
     //reset back to not destroy root's children

@@ -3,9 +3,7 @@ import {
 } from '../globals';
 
 import {
-  redraw,
-  startComputation,
-  endComputation
+  redraw
 } from '../update';
 
 import {type, slice, NOOP} from '../utils';
@@ -24,25 +22,24 @@ export default function mount(root, component, forceRecreation) {
       G.computePreRedrawHook = G.computePostRedrawHook = null;
     }
   };
-  for (let i = 0, unloader; unloader = G.unloaders[i]; i++) {
-    unloader.handler.call(unloader.controller, event);
-    unloader.controller.onunload = null;
-  }
+  G.unloaders.each(function(unloader, controller){
+    unloader.call(controller, event);
+    controller.onunload = null;
+  });
 
   if (isPrevented) {
-    for (let i = 0, unloader; unloader = G.unloaders[i]; i++) unloader.controller.onunload = unloader.handler;
+    G.unloaders.each(function(unloader, controller){
+      controller.onunload = unloader;
+    });
   }
-  else G.unloaders = [];
+  else G.unloaders.clear();
   
   if (G.controllers[index] && type(G.controllers[index].onunload) === 'function') {
     G.controllers[index].onunload(event);
   }
   
   if (!isPrevented) {
-    // redraw.strategy("all");
-    startComputation();
     G.roots[index] = root;
-    // if (arguments.length > 2) component = componentize(component, slice(arguments, 2));
     let currentComponent = topComponent = component = component || {controller: NOOP};
     let constructor = component.controller || NOOP;
     let controller = new constructor;
@@ -53,7 +50,7 @@ export default function mount(root, component, forceRecreation) {
       G.components[index] = component;
       G.recreations[index] = forceRecreation;
     }
-    endComputation();
+    redraw();
     return G.controllers[index];
   }
 };

@@ -1,3 +1,3 @@
 import m from './m';
-import render from './render';
+import {render} from './render';
 export {m, render}

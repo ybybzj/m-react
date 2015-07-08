@@ -1,4 +1,4 @@
-import { type, NOOP, slice } from '../utils';
+import { type, NOOP, slice, getHash } from '../utils';
 import clear from './clear';
 import {
   document as $document,
@@ -125,8 +125,9 @@ function diffChildrenWithKey(data, cached, parentElement) {
       return a.action - b.action || a.index - b.index;
     });
     newCached.nodes = cached.nodes.slice();
-
-    changes.forEach(_applyChanges);
+    for(let i = 0, l = changes.length; i < l; i++){
+      _applyChanges(changes[i], newCached);
+    }
     cached = newCached;
   }
   return cached;
@@ -175,29 +176,32 @@ function diffChildrenWithKey(data, cached, parentElement) {
     }
   }
 
-  function _applyChanges(change){
+  function _applyChanges(change, newCached){
     var changeIdx = change.index,
-        action = action;
+        action = change.action;
     if(action === DELETION){
       clear(cached[changeIdx].nodes, cached[changeIdx]);
       newCached.splice(changeIdx, 1);
     }
     if(action === INSERTION){
       let dummy = $document.createElement('div');
-      dummy.key = data[changeIdx].attrs.key;
+      dummy.setAttribute('data-mref', changeIdx);
+      let key = data[changeIdx].attrs.key;
       parentElement.insertBefore(dummy, parentElement.childNodes[changeIdx] || null);
       newCached.splice(changeIdx, 0, {
-        attrs :{key: dummy.key}, nodes:[dummy]
+        attrs :{key: key}, 
+        nodes:[dummy]
       });
       newCached.nodes[changeIdx] = dummy;
     }
 
     if(action === MOVE){
+      change.element.setAttribute('data-mref', changeIdx);
       if(parentElement.childNodes[changeIdx] !== change.element && change.element !== null){
         parentElement.insertBefore(change.element, parentElement.childNodes[changeIdx] || null);
       }
       newCached[changeIdx] = cached[change.from];
-      mewCached.nodes[changeIdx] = change.element;
+      newCached.nodes[changeIdx] = change.element;
     }
   }
 }
@@ -243,23 +247,32 @@ function diffArrayItem(data, cached, parentElement, parentTag, index, shouldReat
 function diffVNode(data, cached, parentElement, index, shouldReattach, editable, namespace, configs) {
   var views = [],
       controllers = [],
-      componentName;
+      componentName,
+      componentCache;
       //record the final component name
   //handle the situation that vNode is a component({view, controller});
   
   while(data.view){
-    let view = data.view.$original || data.view;
+    let curView = data.view;
+    let view = data.view.$original || curView;
     let controllerIndex = cached.views ? cached.views.indexOf(view) : -1;
     let controller = controllerIndex > -1 ? cached.controllers[controllerIndex] : new (data.controller || NOOP);
-    componentName = controller.name;
+    let component = controller.instance;
+    if(typeof component === 'object'){// handle component
+      componentName = component.name;
+      if(typeof component.cached === 'object')
+        componentCache = component.cached;
+      component.viewFn = [curView, controller];
+    }
+   
     let key = data && data.attrs && data.attrs.key;
-    data = (G.pendingRequests == 0 || G.forcing) || (cached && cached.controllers && cached.controllers.indexOf(controller) > -1) ? data.view(controller) : {tag: "placeholder"};
-    if (data.subtree === "retain") return cached;
+    data = data.view(controller);
+    if (data.subtree === "retain") return componentCache? componentCache: cached;
     if (key != null) {
       if (!data.attrs) data.attrs = {};
       data.attrs.key = key;
     }
-    if (controller.onunload) G.unloaders.push({controller: controller, handler: controller.onunload});
+    if (controller.onunload) G.unloaders.set(controller, controller.onunload);
     views.push(view);
     controllers.push(controller);
   }
@@ -268,10 +281,10 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
   //not a array or string
   if(!data.tag && controllers.length) throw new Error('Component template must return a virtual element, not an array, string, etc.');
   if(!data.attrs) data.attrs = {};
+  if(componentCache != null) cached = componentCache;
   if(!cached.attrs) cached.attrs = {};
   //if an element is different enough from the one in cache, recreate it
-  if(
-      data.tag != cached.tag ||
+  if( data.tag != cached.tag ||
       !_hasSameKeys(data.attrs, cached.attrs)||
       data.attrs.id != cached.attrs.id ||
       data.attrs.key != cached.attrs.key ||
@@ -304,14 +317,6 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
     if (controllers.length) {
       cached.views = views;
       cached.controllers = controllers;
-      for (let i = 0, controller; controller = controllers[i]; i++) {
-        if (controller.onunload && controller.onunload.$old) controller.onunload = controller.onunload.$old;
-        if (G.pendingRequests && controller.onunload) {
-          let onunload = controller.onunload;
-          controller.onunload = NOOP;
-          controller.onunload.$old = onunload;
-        }
-      }
     }
     
     if (cached.children && !cached.children.nodes) cached.children.nodes = [];
@@ -332,6 +337,9 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
     }
     if (shouldReattach === true && domNode != null) parentElement.insertBefore(domNode, parentElement.childNodes[index] || null);
   }
+  if(type(componentName) === 'string'){
+    cached.componentName = componentName;
+  }
   //schedule configs to be called. They are called after `build` finishes running
   if (type(data.attrs.config) === 'function') {
     let context = cached.configContext = cached.configContext || {};
@@ -342,10 +350,8 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
         return data.attrs.config.apply(data, args);
       };
     };
-    configs.push(callback(data, [domNode, !isNew, context, cached]));
-  }
-  if(type(componentName) === 'string'){
-    cached.componentName = componentName;
+    configs.push(callback(data, [domNode, !isNew, context, cached, 
+      [parentElement,index,editable,namespace]]));
   }
   return cached;
 }

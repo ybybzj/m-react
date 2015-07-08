@@ -49,6 +49,13 @@ Map.prototype = {
       this._values.splice(i, 1);
     }
     return -1 < i;
+  },
+  each: function(fn){
+    if(typeof fn !== 'function') return;
+    var i = 0, l = this._keys.length;
+    for(;i < l; i++){
+      fn(this._values[i], this._keys[i]);
+    }
   }
 };
 //detect NaN/0 equality

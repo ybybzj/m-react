@@ -1,4 +1,4 @@
-export { NOOP, type, slice, gettersetter, hasOwn, _extend, extend, removeVoidValue, toArray, getHash,matchReg };
+export { NOOP, type, slice, hasOwn, _extend, extend, removeVoidValue, toArray, getHash,matchReg, getParentElFrom };
 
 function NOOP() {};
 
@@ -20,17 +20,6 @@ var _slice = Array.prototype.slice;
 function slice() {
   return _slice.apply(arguments[0], _slice.call(arguments, 1));
 };
-
-function gettersetter(store) {
-  var prop = function() {
-    if (arguments.length) store = arguments[0];
-    return store;
-  };
-  prop.toJSON = function() {
-    return store;
-  };
-  return prop;
-}
 
 function hasOwn(o, k) {
   return Object.prototype.hasOwnProperty.call(o, k);
@@ -121,4 +110,37 @@ function matchReg(str, reg){
     return null;
   }
   return str.match(reg);
+}
+// *
+//  * function to extract two types relative to batch update activity.
+//  * TaskType - indicate the way of handling the corresponding task.
+//  *            type bitmask(0 => render; 1 => redraw)
+//  * MergeType - indicate how to merge current task into the task queue.
+//  *            type bitmask(0 => contain; 1 => replace)
+//  * @param  {[Positive Number]} tMask, result of bitwise operation on type bitmask
+//  * so, 0 => TaskType.render | MergeType.contain(00)
+//  *     1 => TaskType.render | MergeType.replace(01)
+//  *     2 => TaskType.redraw | MergeType.contain(10)
+//  *     3 => TaskType.redraw | MergeType.replace(11)
+//  * @return {[types]}       [taskType, mergeType]
+ 
+// function extractTaskTypes(tMask){
+//   return [(tMask&2)>>1, (tMask&1)];
+// }
+// var isAncestorOf = 'compareDocumentPosition' in document.documentElement ?
+//                         function (el, container) {
+//                             return (container.compareDocumentPosition(el)&16) === 16 ;
+//                         } :
+//                         function (el, container) {
+//                             container = container === document || container === window ? document.documentElement : container;
+//                             return container !== el && container.contains(el);
+//                         };
+function getParentElFrom(inQEl, taskEl){
+  if(inQEl === taskEl) return taskEl;
+  var comparePosResult = inQEl.compareDocumentPosition(taskEl);
+  if(comparePosResult&(16|8)){
+    return comparePosResult&16 ? inQEl: taskEl;
+  }else{
+    return null;
+  }
 }

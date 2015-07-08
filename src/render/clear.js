@@ -13,7 +13,6 @@ export default function clear(domNodes, vNodes) {
       try {
         domNodes[i].parentNode.removeChild(domNodes[i]);
       } catch (e) {} //ignore if this fails due to order of events (see http://stackoverflow.com/questions/21926083/failed-to-execute-removechild-on-node)
-      // vNodes = [].concat(vNodes);
     }
   }
   if (domNodes.length != 0) domNodes.length = 0;
@@ -26,9 +25,10 @@ function unload(vNode) {
   }
   if (vNode.controllers) {
     for (let i = 0, controller; controller = vNode.controllers[i]; i++) {
-      if (type(controller.onunload) === 'function') controller.onunload({
-        preventDefault: NOOP
-      });
+      if (type(controller.onunload) === 'function') {
+        controller.onunload({preventDefault: NOOP});
+        G.unloaders.remove(controller); //unload function should only execute once
+      }
     }
   }
   if (vNode.children) {
