@@ -71,3 +71,6 @@ Examples
 ------
 TodoMVC:  [https://github.com/ybybzj/m-react-todomvc](https://github.com/ybybzj/m-react-todomvc)
 
+Performance
+------
+TodoMVC Perf Comparison:  [http://ybybzj.github.io/m-react-todomvc-perf/](http://ybybzj.github.io/m-react-todomvc-perf/)
