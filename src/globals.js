@@ -1,18 +1,14 @@
-import {gettersetter} from './utils';
 import {Map} from './store';
 import DOMDelegator from './dom-delegator';
 import Batch from './update/batch';
-export var global = typeof window != "undefined" ? window : {};
+export var global = typeof window !== 'undefined' ? window : {};
 export var document = global.document;
-export var runtime = (typeof process != "undefined" && !process.browser)? "nodejs": typeof window != "undefined" ? "browser" : "unknown";
+export var runtime = (typeof process !== 'undefined' && !process.browser) ? 'nodejs' : typeof window !== 'undefined' ? 'browser' : 'unknown';
 export var G = {
-  pendingRequests: 0,
   forcing: false,
-  unloaders: [],
-  //default update strategy is 'diff', so render method will diff update
-  updateStrategy: gettersetter('diff'),
-  computePreRedrawHook : null,
-  computePostRedrawHook : null,
+  unloaders: new Map(),
+  computePreRedrawHook: null,
+  computePostRedrawHook: null,
   //mount registries
   roots: [],
   recreations: [],

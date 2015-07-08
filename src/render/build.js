@@ -1,4 +1,4 @@
-import { type, NOOP, slice } from '../utils';
+import { type, NOOP } from '../utils';
 import clear from './clear';
 import {
   document as $document,
@@ -12,7 +12,7 @@ import setAttributes from './setAttributes';
 //3 - recursively apply this algorithm for every array and for the children of every virtual element
 //the `cached` data structure is essentially the same as the previous redraw's `data` data structure, with a few additions:
 //- `cached` always has a property called `nodes`, which is a list of DOM elements that correspond to the data represented by the respective virtual element
-//- in order to support attaching `nodes` as a property of `cached`, `cached` is *always* a non-primitive object, i.e. if the data was a string, then cached is a String instance. If data was `null` or `undefined`, cached is `new String("")`
+//- in order to support attaching `nodes` as a property of `cached`, `cached` is *always* a non-primitive object, i.e. if the data was a string, then cached is a String instance. If data was `null` or `undefined`, cached is `new String('')`
 //- `cached also has a `configContext` property, which is the state storage object exposed by config(element, isInitialized, context)
 //- when `cached` is an Object, it represents a virtual element; when it's an Array, it represents a list of elements; when it's a String, Number or Boolean, it represents a text node
 //`parentElement` is a DOM element used for W3C DOM API calls
@@ -25,7 +25,7 @@ import setAttributes from './setAttributes';
 //`namespace` indicates the closest HTML namespace as it cascades down from an ancestor
 //`configs` is a list of config functions to run after the topmost `build` call finishes running
 //there's logic that relies on the assumption that null and undefined data are equivalent to empty strings
-//- this prevents lifecycle surprises from procedural helpers that mix implicit and explicit return statements (e.g. function foo() {if (cond) return m("div")}
+//- this prevents lifecycle surprises from procedural helpers that mix implicit and explicit return statements (e.g. function foo() {if (cond) return m('div')}
 //- it simplifies diffing code
 //data.toString() might throw or return null if data is the return value of Console.log in Firefox (behavior depends on version)
 var VOID_ELEMENTS = /^(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|KEYGEN|LINK|META|PARAM|SOURCE|TRACK|WBR)$/;
@@ -33,12 +33,14 @@ export default function build(parentElement, parentTag, parentCache, parentIndex
   //data.toString() might throw or return null if data is the return value of Console.log in firefox (behavior depends on version)
   try {
     if (data == null || data.toString() == null) {
-      data = "";
+      data = '';
     }
   } catch (_) {
-    data = "";
+    data = '';
   }
-  if (data.subtree === 'retain') return cached;
+  if (data.subtree === 'retain'){
+    return cached;
+  }
   var cachedType = type(cached),
     dataType = type(data),
     intact;
@@ -70,8 +72,10 @@ function clearCached(data, cached, index, parentIndex, parentCache, dataType) {
       clear(cached.nodes, cached);
     }
   }
-  cached = new data.constructor;
-  if (cached.tag) cached = {};
+  cached = new data.constructor();
+  if (cached.tag){
+    cached = {};
+  }
   cached.nodes = [];
   return cached;
 }
@@ -93,7 +97,7 @@ function diffChildrenWithKey(data, cached, parentElement) {
     let key = _key(cachedNode);
     //normarlize key
     _normalizeKey(cachedNode, key);
-    
+
     if (key !== undefined) {
       shouldMaintainIdentities = true;
       existing[key] = {
@@ -112,21 +116,26 @@ function diffChildrenWithKey(data, cached, parentElement) {
   })) {
     data.forEach(function(dataNode) {
       if (dataNode && dataNode.attrs && dataNode.attrs.key == null) {
-        dataNode.attrs.key = "__mithril__" + (guid++);
+        dataNode.attrs.key = '__mithril__' + (guid++);
       }
     });
   }
-  if (shouldMaintainIdentities && _isKeysDiffer(data, cached)) {
+  if (shouldMaintainIdentities && _isKeysDiffer()) {
     // 2), 3)
     data.forEach(_dataNodeToExisting);
     // 4)
     let changes, newCached = new Array(cached.length);
-    changes = Object.keys(existing).map(function(key){return existing[key];}).sort(function(a,b){
-      return a.action - b.action || a.index - b.index;
-    });
+    changes = Object.keys(existing)
+        .map(function(key){
+          return existing[key];
+        })
+        .sort(function(a, b){
+          return a.action - b.action || a.index - b.index;
+        });
     newCached.nodes = cached.nodes.slice();
-
-    changes.forEach(_applyChanges);
+    for(let i = 0, l = changes.length; i < l; i++){
+      _applyChanges(changes[i], newCached);
+    }
     cached = newCached;
   }
   return cached;
@@ -139,7 +148,9 @@ function diffChildrenWithKey(data, cached, parentElement) {
     return (nodeItem && nodeItem.attrs && _isKey(nodeItem.attrs.key)) ? nodeItem.attrs.key : undefined;
   }
   function _normalizeKey(node, key){
-    if(!node || !node.attrs) return;
+    if(!node || !node.attrs) {
+      return;
+    }
     if(key === undefined){
       delete node.attrs.key;
     }else{
@@ -147,8 +158,10 @@ function diffChildrenWithKey(data, cached, parentElement) {
     }
   }
 
-  function _isKeysDiffer(data, cached) {
-    if (data.length !== cached.length) return true;
+  function _isKeysDiffer() {
+    if (data.length !== cached.length) {
+      return true;
+    }
     return data.some(function(dataNode, idx) {
       var cachedNode = cached[idx];
       return cachedNode.attrs && dataNode.attrs && cachedNode.attrs.key !== dataNode.attrs.key;
@@ -175,29 +188,32 @@ function diffChildrenWithKey(data, cached, parentElement) {
     }
   }
 
-  function _applyChanges(change){
+  function _applyChanges(change, newCached){
     var changeIdx = change.index,
-        action = action;
+        action = change.action;
     if(action === DELETION){
       clear(cached[changeIdx].nodes, cached[changeIdx]);
       newCached.splice(changeIdx, 1);
     }
     if(action === INSERTION){
       let dummy = $document.createElement('div');
-      dummy.key = data[changeIdx].attrs.key;
+      dummy.setAttribute('data-mref', changeIdx);
+      let key = data[changeIdx].attrs.key;
       parentElement.insertBefore(dummy, parentElement.childNodes[changeIdx] || null);
       newCached.splice(changeIdx, 0, {
-        attrs :{key: dummy.key}, nodes:[dummy]
+        attrs: {key: key},
+        nodes: [dummy]
       });
       newCached.nodes[changeIdx] = dummy;
     }
 
     if(action === MOVE){
+      change.element.setAttribute('data-mref', changeIdx);
       if(parentElement.childNodes[changeIdx] !== change.element && change.element !== null){
         parentElement.insertBefore(change.element, parentElement.childNodes[changeIdx] || null);
       }
       newCached[changeIdx] = cached[change.from];
-      mewCached.nodes[changeIdx] = change.element;
+      newCached.nodes[changeIdx] = change.element;
     }
   }
 }
@@ -209,25 +225,36 @@ function diffArrayItem(data, cached, parentElement, parentTag, index, shouldReat
   data.forEach(_diffBuildItem);
   if(!intact){
     //diff the array itself
-    
+
     //update the list of DOM nodes by collecting the nodes from each item
     for (let i = 0, len = data.length; i < len; i++) {
-      if (cached[i] != null) nodes.push.apply(nodes, cached[i].nodes);
+      if (cached[i] != null) {
+        nodes.push.apply(nodes, cached[i].nodes);
+      }
     }
     //remove items from the end of the array if the new array is shorter than the old one
     //if errors ever happen here, the issue is most likely a bug in the construction of the `cached` data structure somewhere earlier in the program
+    /*eslint no-cond-assign:0*/
     for (let i = 0, node; node = cached.nodes[i]; i++) {
-      if (node.parentNode != null && nodes.indexOf(node) < 0) clear([node], [cached[i]]);
+      if (node.parentNode != null && nodes.indexOf(node) < 0) {
+        clear([node], [cached[i]]);
+      }
     }
-    if (data.length < cached.length) cached.length = data.length;
+    if (data.length < cached.length) {
+      cached.length = data.length;
+    }
     cached.nodes = nodes;
   }
   return cached;
   //helpers
   function _diffBuildItem(dataNode){
     var item = build(parentElement, parentTag, cached, index, dataNode, cached[cacheCount], shouldReattach, index + subArrayCount || subArrayCount, editable, namespace, configs);
-    if(item === undefined) return;
-    if(!item.nodes.intact) intact = false;
+    if(item === undefined) {
+      return;
+    }
+    if(!item.nodes.intact) {
+      intact = false;
+    }
     if(item.$trusted){
       //fix offset of next element if item was a trusted string w/ more than one html element
       //the first clause in the regexp matches elements
@@ -243,55 +270,79 @@ function diffArrayItem(data, cached, parentElement, parentTag, index, shouldReat
 function diffVNode(data, cached, parentElement, index, shouldReattach, editable, namespace, configs) {
   var views = [],
       controllers = [],
-      componentName;
+      componentName,
+      componentCache;
       //record the final component name
   //handle the situation that vNode is a component({view, controller});
-  
+
   while(data.view){
-    let view = data.view.$original || data.view;
+    let curView = data.view;
+    let view = data.view.$original || curView;
     let controllerIndex = cached.views ? cached.views.indexOf(view) : -1;
     let controller = controllerIndex > -1 ? cached.controllers[controllerIndex] : new (data.controller || NOOP);
-    componentName = controller.name;
+    let component = controller.instance;
+    if(typeof component === 'object'){// handle component
+      componentName = component.name;
+      if(typeof component.cached === 'object') {
+        componentCache = component.cached;
+      }
+      component.viewFn = [curView, controller];
+    }
+
     let key = data && data.attrs && data.attrs.key;
-    data = (G.pendingRequests == 0 || G.forcing) || (cached && cached.controllers && cached.controllers.indexOf(controller) > -1) ? data.view(controller) : {tag: "placeholder"};
-    if (data.subtree === "retain") return cached;
+    data = data.view(controller);
+    if (data.subtree === 'retain') {
+      return componentCache? componentCache: cached;
+    }
     if (key != null) {
-      if (!data.attrs) data.attrs = {};
+      if (!data.attrs) { data.attrs = {}; }
       data.attrs.key = key;
     }
-    if (controller.onunload) G.unloaders.push({controller: controller, handler: controller.onunload});
+    if (controller.onunload) {
+      G.unloaders.set(controller, controller.onunload);
+    }
     views.push(view);
     controllers.push(controller);
   }
-  
+
   //the result of view function must be a sigle root vNode,
   //not a array or string
-  if(!data.tag && controllers.length) throw new Error('Component template must return a virtual element, not an array, string, etc.');
-  if(!data.attrs) data.attrs = {};
-  if(!cached.attrs) cached.attrs = {};
+  if(!data.tag && controllers.length) {
+    throw new Error('Component template must return a virtual element, not an array, string, etc.');
+  }
+  if(!data.attrs) {
+    data.attrs = {};
+  }
+  if(componentCache != null) {
+    cached = componentCache;
+  }
+  if(!cached.attrs) {
+    cached.attrs = {};
+  }
   //if an element is different enough from the one in cache, recreate it
-  if(
-      data.tag != cached.tag ||
+  if( data.tag != cached.tag ||
       !_hasSameKeys(data.attrs, cached.attrs)||
       data.attrs.id != cached.attrs.id ||
       data.attrs.key != cached.attrs.key ||
       type(componentName) === 'string' && cached.componentName != componentName
     ){
-    if (cached.nodes.length) clear(cached.nodes, cached);
+    if (cached.nodes.length) { clear(cached.nodes, cached); }
   }
 
-  if(type(data.tag) !== 'string') return;
+  if(type(data.tag) !== 'string') {
+    return cached;
+  }
 
   var isNew = (cached.nodes.length === 0),
       dataAttrKeys = Object.keys(data.attrs),
-      hasKeys = dataAttrKeys.length > ("key" in data.attrs ? 1 : 0),
+      hasKeys = dataAttrKeys.length > ('key' in data.attrs ? 1 : 0),
       domNode, newNodeIdx;
-  if (data.attrs.xmlns) namespace = data.attrs.xmlns;
-  else if (data.tag === "svg") namespace = "http://www.w3.org/2000/svg";
-  else if (data.tag === "math") namespace = "http://www.w3.org/1998/Math/MathML";
+  if (data.attrs.xmlns) { namespace = data.attrs.xmlns; }
+  else if (data.tag === 'svg') { namespace = 'http://www.w3.org/2000/svg'; }
+  else if (data.tag === 'math') { namespace = 'http://www.w3.org/1998/Math/MathML'; }
 
   if(isNew){
-    [domNode,newNodeIdx] = _newElement(parentElement, namespace, data, index);
+    [domNode, newNodeIdx] = _newElement(parentElement, namespace, data, index);
     cached = {
       tag: data.tag,
       //set attributes first, then create children
@@ -304,48 +355,48 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
     if (controllers.length) {
       cached.views = views;
       cached.controllers = controllers;
-      for (let i = 0, controller; controller = controllers[i]; i++) {
-        if (controller.onunload && controller.onunload.$old) controller.onunload = controller.onunload.$old;
-        if (G.pendingRequests && controller.onunload) {
-          let onunload = controller.onunload;
-          controller.onunload = NOOP;
-          controller.onunload.$old = onunload;
-        }
-      }
     }
-    
-    if (cached.children && !cached.children.nodes) cached.children.nodes = [];
+
+    if (cached.children && !cached.children.nodes) { cached.children.nodes = []; }
     //edge case: setting value on <select> doesn't work before children exist, so set it again after children have been created
-    if (data.tag === "select" && "value" in data.attrs) setAttributes(domNode, data.tag, {value: data.attrs.value}, {}, namespace);
-    
-    if(newNodeIdx != null)
+    if (data.tag === 'select' && 'value' in data.attrs) {
+      setAttributes(domNode, data.tag, {value: data.attrs.value}, {}, namespace);
+    }
+
+    if(newNodeIdx != null) {
       parentElement.insertBefore(domNode, parentElement.childNodes[newNodeIdx] || null);
+    }
   }else{
     domNode = cached.nodes[0];
-    if (hasKeys) setAttributes(domNode, data.tag, data.attrs, cached.attrs, namespace);
-    cached.children = 
+    if (hasKeys) {
+      setAttributes(domNode, data.tag, data.attrs, cached.attrs, namespace);
+    }
+    cached.children =
         build(domNode, data.tag, undefined, undefined, data.children, cached.children, false, 0, data.attrs.contenteditable ? domNode : editable, namespace, configs);
     cached.nodes.intact = true;
     if (controllers.length) {
       cached.views = views;
       cached.controllers = controllers;
     }
-    if (shouldReattach === true && domNode != null) parentElement.insertBefore(domNode, parentElement.childNodes[index] || null);
+    if (shouldReattach === true && domNode != null) {
+      parentElement.insertBefore(domNode, parentElement.childNodes[index] || null);
+    }
+  }
+  if(type(componentName) === 'string'){
+    cached.componentName = componentName;
   }
   //schedule configs to be called. They are called after `build` finishes running
   if (type(data.attrs.config) === 'function') {
     let context = cached.configContext = cached.configContext || {};
 
     // bind
-    let callback = function(data, args) {
+    let callback = function(args) {
       return function() {
         return data.attrs.config.apply(data, args);
       };
     };
-    configs.push(callback(data, [domNode, !isNew, context, cached]));
-  }
-  if(type(componentName) === 'string'){
-    cached.componentName = componentName;
+    configs.push(callback([domNode, !isNew, context, cached,
+      [parentElement, index, editable, namespace]]));
   }
   return cached;
 }
@@ -356,14 +407,18 @@ function _newElement(parentElement, namespace, data, index){
     if(domNodeIndex && domNodeIndex[0]){
       insertIdx = domNodeIndex[1];
       if(domNodeIndex[0].tagName.toLowerCase() == data.tag.toLowerCase()){
-        return [domNodeIndex[0],null];
+        return [domNodeIndex[0], null];
       }else{
         clear([domNodeIndex[0]]);
       }
     }
   }
-  if (data.attrs.is) domNode = namespace === undefined ? $document.createElement(data.tag, data.attrs.is) : $document.createElementNS(namespace, data.tag, data.attrs.is);
-  else domNode = namespace === undefined ? $document.createElement(data.tag) : $document.createElementNS(namespace, data.tag);
+  if (data.attrs.is) {
+    domNode = namespace === undefined ? $document.createElement(data.tag, data.attrs.is) : $document.createElementNS(namespace, data.tag, data.attrs.is);
+  }
+  else {
+    domNode = namespace === undefined ? $document.createElement(data.tag) : $document.createElementNS(namespace, data.tag);
+  }
   domNode.setAttribute('data-mref', index);
   return [domNode, insertIdx];
 }
@@ -379,20 +434,22 @@ function _findDomNodeByRef(parentElement, ref){
   return null;
 }
 
-function diffTextNode(data, cached, parentElement,parentTag, index, shouldReattach, editable) {
+function diffTextNode(data, cached, parentElement, parentTag, index, shouldReattach, editable) {
   //handle text nodes
   var nodes;
   if (cached.nodes.length === 0) {
-    if(data == '') return cached;
+    if(data == '') { return cached; }
     clear([parentElement.childNodes[index]]);
     if (data.$trusted) {
       nodes = injectHTML(parentElement, index, data);
     }
     else {
       nodes = [$document.createTextNode(data)];
-      if (!parentElement.nodeName.match(VOID_ELEMENTS)) parentElement.insertBefore(nodes[0], parentElement.childNodes[index] || null);
+      if (!parentElement.nodeName.match(VOID_ELEMENTS)) {
+        parentElement.insertBefore(nodes[0], parentElement.childNodes[index] || null);
+      }
     }
-    cached = "string number boolean".indexOf(typeof data) > -1 ? new data.constructor(data) : data;
+    cached = 'string number boolean'.indexOf(typeof data) > -1 ? new data.constructor(data) : data;
     cached.nodes = nodes;
   }else if (cached.valueOf() !== data.valueOf() || shouldReattach === true) {
     nodes = cached.nodes;
@@ -404,8 +461,8 @@ function diffTextNode(data, cached, parentElement,parentTag, index, shouldReatta
       else {
         //corner case: replacing the nodeValue of a text node that is a child of a textarea/contenteditable doesn't work
         //we need to update the value property of the parent textarea or the innerHTML of the contenteditable element instead
-        if (parentTag === "textarea") parentElement.value = data;
-        else if (editable) editable.innerHTML = data;
+        if (parentTag === 'textarea') { parentElement.value = data; }
+        else if (editable) { editable.innerHTML = data; }
         else {
           if (nodes[0].nodeType === 1 || nodes.length > 1) { //was a trusted string
             clear(cached.nodes, cached);
@@ -419,7 +476,7 @@ function diffTextNode(data, cached, parentElement,parentTag, index, shouldReatta
     cached = new data.constructor(data);
     cached.nodes = nodes;
   }
-  else cached.nodes.intact = true;
+  else { cached.nodes.intact = true; }
   return cached;
 }
 

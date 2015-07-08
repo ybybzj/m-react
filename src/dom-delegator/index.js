@@ -38,7 +38,9 @@ proto.on = function on(el, evType, handler){
 
 proto.off = function off(el, evType, handler){
   var evStore = getEvStore(this.domEvHandlerMap, el);
-  if(!evStore) return this;
+  if(!evStore){
+    return this;
+  }
   if(arguments.length >= 3){
     removeListener(evStore, evType, this, handler);
   }else if(arguments.length === 2){
@@ -65,7 +67,6 @@ proto.removeGlobalEventListener = function removeGlobalEventListener(evType, han
   } else{
     removeAllListener(this.globalListeners, this);
   }
-  
   return this;
 };
 proto.destroy = function destroy(){
@@ -85,16 +86,16 @@ proto.listenTo = function listenTo(evType){
   this.listenedEvents[evType]++;
 
   if(this.listenedEvents[evType] !== 1){
-    return ;
+    return this;
   }
   var listener = this.eventDispatchers[evType];
   if(!listener){
-    listener = this.eventDispatchers[evType] = 
+    listener = this.eventDispatchers[evType] =
         createDispatcher(evType, this);
   }
   addEventListener(this.root, evType, listener);
   return this;
-}
+};
 //for each evType, decrease by 1 if there is a el stop to listen
 // to this type of event
 proto.unlistenTo = function unlistenTo(evType){
@@ -103,32 +104,32 @@ proto.unlistenTo = function unlistenTo(evType){
   if(arguments.length === 0){
     //remove all dispatch listeners
     Object.keys(eventDispatchers)
-    .filter(function(evType){
-      var rtn = !!eventDispatchers[evType];
+    .filter(function(etype){
+      var rtn = !!eventDispatchers[etype];
       if(rtn){
         //force to call removeEventListener method
-        eventDispatchers[evType] = 1;
+        eventDispatchers[etype] = 1;
       }
       return rtn;
     })
-    .forEach(function(evType){
-      delegator.unlistenTo(evType);
+    .forEach(function(etype){
+      delegator.unlistenTo(etype);
     });
     return this;
   }
   if(!(evType in this.listenedEvents) || this.listenedEvents[evType] === 0){
-    console.log('[DOMDelegator unlistenTo]event "' + 
+    console.log('[DOMDelegator unlistenTo]event "' +
           evType + '" is already unlistened!');
-    return;
+    return this;
   }
   this.listenedEvents[evType]--;
   if(this.listenedEvents[evType] > 0){
-    return;
+    return this;
   }
   var listener = this.eventDispatchers[evType];
   if(!listener){
-    throw new Error("[DOMDelegator unlistenTo]: cannot " +
-            "unlisten to " + evType);
+    throw new Error('[DOMDelegator unlistenTo]: cannot ' +
+            'unlisten to ' + evType);
   }
   removeEventListener(this.root, evType, listener);
   return this;
@@ -165,7 +166,7 @@ function getListener(target, evType, delegator){
   if(target == null){
     return null;
   }
-  var evStore = getEvStore(delegator.domEvHandlerMap,target),
+  var evStore = getEvStore(delegator.domEvHandlerMap, target),
     handlers;
   if(!evStore || !(handlers = evStore[evType]) || handlers.length === 0){
     return getListener(target.parentNode, evType, delegator);
@@ -183,8 +184,8 @@ function callListeners(handlers, ev){
     }else if(type(handler.handleEvent) === 'function'){
       handler.handleEvent(ev);
     }else{
-      throw new Error("[DOMDelegator callListeners] unknown handler " +
-                "found: " + JSON.stringify(handlers));
+      throw new Error('[DOMDelegator callListeners] unknown handler ' +
+                'found: ' + JSON.stringify(handlers));
     }
   });
 }
@@ -229,7 +230,7 @@ function removeListener(evHash, evType, delegator, handler){
   return handler;
 }
 
-function removeAllListener(evHash,delegator){
+function removeAllListener(evHash, delegator){
   Object.keys(evHash).forEach(function(evType){
     removeListener(evHash, evType, delegator);
   });

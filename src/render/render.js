@@ -4,11 +4,8 @@ import {
 } from '../globals';
 import build from './build';
 import clear from './clear';
-//render queue setting
-G.renderQueue
-    .onFlush(_render)
-    .onAddTarget(_mergeTask);
-export default render;
+
+export {render};
 function render(root, vNode, forceRecreation, force){
   var task = {
     root: root,
@@ -18,12 +15,17 @@ function render(root, vNode, forceRecreation, force){
   if(force === true){
     return _render(task);
   }
-  G.renderQueue.addTarget(task);
+  G.renderQueue.addTarget({
+    mergeType: 1,// replace
+    root: root,
+    processor: _render,
+    params: [task]
+  });
 }
 var html;
 var documentNode = {
   appendChild: function(node){
-    if(html === undefined) html = $document.createElement('html');
+    if(html === undefined) { html = $document.createElement('html'); }
     if($document.documentElement && $document.documentElement !== node){
       $document.replaceChild(node, $document.documentElement);
     }else{
@@ -44,13 +46,13 @@ function _render(task){
     throw new Error('Ensure the DOM element being passed to m.route/m.mount/m.render is not undefined.');
   }
   var configs = [],
-      isDocumentRoot = root === $document,
-      domNode = isDocumentRoot || root === $document.documentElement ? documentNode : root,
+      isDocumentRoot = root === $document || root === $document.documentElement,
+      domNode = isDocumentRoot ? documentNode : root,
       vNodeCache;
   if(isDocumentRoot && vNode.tag !== 'html') {
     vNode = {tag: 'html', attrs: {}, children: vNode};
   }
-  
+
   if(forceRecreation){
     reset(domNode);
   }
@@ -65,21 +67,3 @@ function reset(root){
   clear(root.childNodes, domCacheMap.get(root));
   domCacheMap.remove(root);
 }
-
-//helpers
-
-function _mergeTask(queue, task){
-  var i, l, rootIdx = -1;
-  for(i = 0, l = queue.length; i < l; i++){
-    if(queue[i].root === task.root){
-      rootIdx = i;
-      break;
-    }
-  }
-  if(rootIdx > -1){
-    queue.splice(rootIdx, 1);
-  }
-  queue.push(task);
-  return queue;
-}
-

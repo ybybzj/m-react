@@ -10,6 +10,7 @@ Thereby, here is the "mReact", a small React-like library, thanks to Mithril.
 * Support MSX syntax(similar to JSX) by using [MSX by Jonathan Buchanan](https://github.com/insin/msx)
 * Support Event Delegation(use 'ev' plus camel Case event name as attribute, and events donot bubble by default, call "ev.startPropagation" to bubble)
 * Support Server Rendering, and dom will be reserved properly during client code execution.
+* Support cascade rendering
 
 I'm not trying to build a drop-in replacement for React, just mimic the taste. Parts of Mithril other than rendering are removed. So how to manage routing or model layer is all up to you.
 

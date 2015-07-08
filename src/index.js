@@ -1,5 +1,5 @@
 import {render, m} from './render';
-import {redraw, startComputation, endComputation} from './update';
+import {redraw} from './update';
 import {mount, component, createComponent} from './mount';
 import {G} from './globals';
 import {_extend} from './utils';

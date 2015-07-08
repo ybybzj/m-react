@@ -1,9 +1,10 @@
-import * as update from '../update';
+// import * as update from '../update';
 import {type, extend, slice, removeVoidValue, toArray} from '../utils';
-import {runtime as RT} from '../globals';
-var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate','componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps','getInitialProps', 'getInitialState'];
+import {runtime as RT, G} from '../globals';
+import build from '../render/build';
+var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate', 'componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps', 'getInitialProps', 'getInitialState'];
 var pipedMethods = ['getInitialProps', 'getInitialState', 'componentWillReceiveProps'];
-var ignoreProps = ['setState', 'mixins','onunload', 'setRoot'];
+var ignoreProps = ['setState', 'mixins', 'onunload', 'setInternalProps', 'redraw'];
 
 class Component{
   constructor(props, children){
@@ -11,9 +12,9 @@ class Component{
       throw new TypeError('[Component]param for constructor should a object or null or undefined! given: ' + props);
     }
     this.props = props || {};
-    this.state = {};
     this.props.children = toArray(children);
     this.root = null;
+    // this.state = {};
     if(this.getInitialProps){
       this.props = this.getInitialProps(this.props);
     }
@@ -32,9 +33,13 @@ class Component{
       fn.call(this);
     }
     this.root = null;
+    this.cached = null;
+    this.redrawData = null;
   }
-  setRoot(rootEl){
+  setInternalProps(rootEl, cached, redrawData){
     this.root = rootEl;
+    this.cached = cached;
+    this.redrawData = redrawData;
   }
   // getInitialProps(props){
 
@@ -50,7 +55,7 @@ class Component{
 
   // }
   // shouldComponentUpdate(){
-    
+
   // }
 
   // componentDidUpdate(){
@@ -65,37 +70,61 @@ class Component{
   // componentWillDetached(el){
 
   // }
+  redraw(){
+    if(this.redrawData == null) { return; }
+    var instance = this;
+
+    G.renderQueue.addTarget({
+      mergeType: 0,// contain
+      processor: _build,
+      root: instance.root,
+      params: [instance]
+    });
+  }
+
   setState(state, silence){
-    if(!silence && RT === 'browser'){
-      update.startComputation();
-    }
+    if(this.state == null) { this.state = {}; }
     this.state = extend(this.state, state);
     if(!silence && RT === 'browser'){
-      update.endComputation();
+      this.redraw();
     }
   }
-};
+}
 
+function _build(instance){
+  var viewFn = instance.viewFn,
+      data = viewFn[0](viewFn[1]),
+      key = instance.props.key,
+      [parentElement, index, editable, namespace] = instance.redrawData,
+      configs = [];
+  if(key != null){
+      data.attrs = data.attrs || {};
+      data.attrs.key = key;
+    }
+
+  instance.cached = build(parentElement, null, undefined, undefined, data, instance.cached, false, index, editable, namespace, configs);
+  for(let i = 0, l= configs.length; i < l; i++){
+    configs[i]();
+  }
+}
 export default function createComponent(options){
   if(type(options) !== 'object'){
     throw new TypeError('[createComponent]param should be a object! given: ' + options);
   }
   var component = {},
-      factory = createComponentFactory(options);
+      Factory = createComponentFactory(options);
   component.controller = function(props, children){
-    var instance = new factory(props, children);
+    var instance = new Factory(props, children);
     var ctrl = {
       instance: instance
     };
-    if(type(instance.componentWillUnmount) === 'function'){
-      ctrl.onunload = instance.onunload.bind(instance, instance.componentWillUnmount);
-    }
+    ctrl.onunload = instance.onunload.bind(instance, instance.componentWillUnmount);
     if(type(instance.name) === 'string'){
       ctrl.name = instance.name;
     }
     return ctrl;
   };
-  
+
   component.view = makeView();
   return component;
 }
@@ -106,9 +135,10 @@ function mixinProto(proto, mixins){
   if(type(mixins) !== 'array'){
     mixins = slice(arguments, 1);
   }
-  mixins = mixins.filter(function(m){return type(m) === 'object';});
+  mixins = mixins.filter(function(m){ return type(m) === 'object'; });
   while(mixins.length > 0){
     mixin = mixins.shift();
+    /*eslint no-loop-func:0*/
     Object.keys(mixin).forEach(function(propName){
       if(propName === 'mixins'){
         mixins = _addToHead([].concat(mixin[propName]), mixins);
@@ -134,13 +164,13 @@ function mixinProto(proto, mixins){
       var methods = proto[methodName].filter(function(p){
         return type(p) === 'function';
       });
-      proto[methodName] = _compose(pipedMethods.indexOf(methodName) !== -1,methods);
+      proto[methodName] = _compose(pipedMethods.indexOf(methodName) !== -1, methods);
     }
   });
 }
 function createComponentFactory(options){
   var factory = function ComponentFactory(){
-    Component.apply(this,arguments);
+    Component.apply(this, arguments);
     _bindOnMethods(factory.prototype, this);
   }, mixins;
   factory.prototype = Object.create(Component.prototype);
@@ -164,8 +194,8 @@ function makeView(){
     var instance = ctrl.instance,
         oldProps = cachedValue.props,
         oldState = cachedValue.state,
-        config = function(node, isInitialized, context){
-          _executeFn(instance, 'setRoot', node);
+        config = function(node, isInitialized, context, cached, redrawData){
+          _executeFn(instance, 'setInternalProps', node, cached, redrawData);
           if(!isInitialized){
             _executeFn(instance, 'componentDidMount', node);
             if(type(instance.componentWillDetached) === 'function'){
@@ -174,15 +204,13 @@ function makeView(){
           }else{
             _executeFn(instance, 'componentDidUpdate', node, oldProps, oldState);
           }
-          
-          
         };
       //updateProps
       instance.setProps(props, children);
        //cache previous instance
       cachedValue.props = instance.props;
       cachedValue.state = instance.state;
-      
+
       if(instance.root != null){
         if(_executeFn(instance, 'shouldComponentUpdate', oldProps, oldState) === false){
           return {subtree: 'retain'};
@@ -191,11 +219,11 @@ function makeView(){
       }else{
         _executeFn(instance, 'componentWillMount', oldProps, oldState);
       }
-      
+
       var resultView = _executeFn(instance, 'render', instance.props, instance.state);
       resultView.attrs = resultView.attrs || {};
       resultView.attrs.config = config;
-     
+
       return resultView;
   };
 }
@@ -227,9 +255,9 @@ function _addToHead(arrToAdd, targetArr){
 }
 function _compose(isPiped, fns){
   return function _composed(){
-    var args = slice(arguments,0),
+    var args = slice(arguments, 0),
         self = this,
-        i = 0 ,l = fns.length, fn, result = args;
+        i = 0, l = fns.length, fn, result = args;
     for(; i < l; i++){
       fn = fns[i];
       result = fn.apply(self, args);

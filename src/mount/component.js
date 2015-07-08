@@ -5,12 +5,12 @@ function parameterize(component, args) {
   };
 
   var view = function(ctrl) {
-    if (arguments.length > 1) args = args.concat(slice(arguments, 1));
+    if (arguments.length > 1) { args = args.concat(slice(arguments, 1)); }
     return component.view.apply(component, args.length ? [ctrl].concat(args) : [ctrl]);
-  }
+  };
   view.$original = component.view;
   var output = {controller: controller, view: view};
-  if (args[0] && args[0].key != null) output.attrs = {key: args[0].key};
+  if (args[0] && args[0].key != null) { output.attrs = {key: args[0].key}; }
   return output;
 }
 
