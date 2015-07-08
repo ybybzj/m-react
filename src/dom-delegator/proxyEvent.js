@@ -1,7 +1,7 @@
 var EV_PROPS = {
-  all: ["altKey", "bubbles", "cancelable", "ctrlKey", "eventPhase", "metaKey", "relatedTarget", "shiftKey", "target", "timeStamp", "type", "view", "which"],
-  mouse: ["button", "buttons", "clientX", "clientY", "layerX", "layerY", "offsetX", "offsetY", "pageX", "pageY", "screenX", "screenY", "toElement"],
-  key: ["char", "charCode", "key", "keyCode"]
+  all: ['altKey', 'bubbles', 'cancelable', 'ctrlKey', 'eventPhase', 'metaKey', 'relatedTarget', 'shiftKey', 'target', 'timeStamp', 'type', 'view', 'which'],
+  mouse: ['button', 'buttons', 'clientX', 'clientY', 'layerX', 'layerY', 'offsetX', 'offsetY', 'pageX', 'pageY', 'screenX', 'screenY', 'toElement'],
+  key: ['char', 'charCode', 'key', 'keyCode']
 };
 var rkeyEvent = /^key|input/;
 var rmouseEvent = /^(?:mouse|pointer|contextmenu)|click/;
@@ -9,7 +9,7 @@ import {
   extend
 }
 from '../utils';
-export default ProxyEvent
+export default ProxyEvent;
 
 function ProxyEvent(ev) {
   if (!this instanceof ProxyEvent) {

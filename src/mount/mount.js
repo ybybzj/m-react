@@ -6,15 +6,17 @@ import {
   redraw
 } from '../update';
 
-import {type, slice, NOOP} from '../utils';
+import {type, NOOP} from '../utils';
 
 var topComponent;
 
 export default function mount(root, component, forceRecreation) {
-  if (!root) throw new Error("Please ensure the DOM element exists before rendering a template into it.");
+  if (!root) {
+    throw new Error('Please ensure the DOM element exists before rendering a template into it.');
+  }
   var index = G.roots.indexOf(root);
-  if (index < 0) index = G.roots.length;
-  
+  if (index < 0) { index = G.roots.length; }
+
   var isPrevented = false;
   var event = {
     preventDefault: function() {
@@ -32,17 +34,17 @@ export default function mount(root, component, forceRecreation) {
       controller.onunload = unloader;
     });
   }
-  else G.unloaders.clear();
-  
+  else { G.unloaders.clear(); }
+
   if (G.controllers[index] && type(G.controllers[index].onunload) === 'function') {
     G.controllers[index].onunload(event);
   }
-  
+
   if (!isPrevented) {
     G.roots[index] = root;
     let currentComponent = topComponent = component = component || {controller: NOOP};
     let constructor = component.controller || NOOP;
-    let controller = new constructor;
+    let controller = new constructor();
     //controllers may call m.mount recursively (via m.route redirects, for example)
     //this conditional ensures only the last recursive m.mount call is applied
     if (currentComponent === topComponent) {
@@ -53,4 +55,4 @@ export default function mount(root, component, forceRecreation) {
     redraw();
     return G.controllers[index];
   }
-};
+}

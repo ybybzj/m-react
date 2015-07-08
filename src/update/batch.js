@@ -22,7 +22,7 @@ Batch.prototype.addTarget = function(target) {
   }else{
     this._queue.push(target);
   }
-  
+
   if (oldLen === 0 && this._queue.length === 1) {
     this.scheduleFlush();
   }
@@ -30,7 +30,7 @@ Batch.prototype.addTarget = function(target) {
 };
 Batch.prototype.removeTarget = function(target) {
   var idx = this._queue.indexOf(target);
-  if (idx !== -1) this._queue.splice(idx, 1);
+  if (idx !== -1) { this._queue.splice(idx, 1); }
   return this;
 };
 Batch.prototype.flush = function() {
@@ -50,7 +50,7 @@ Batch.prototype.flush = function() {
       break;
     }
   }
-  
+
   this._queue.splice(0, _i);
   this._startPos = 0;
 
@@ -84,7 +84,7 @@ Batch.prototype.stop = function() {
   this._queue.length = 0;
   return this;
 };
-['onAddTarget','onFinish'].forEach(function(mname){
+['onAddTarget', 'onFinish'].forEach(function(mname){
   Batch.prototype[mname] = function(fn){
     if (type(fn) !== 'function') {
       throw new TypeError('[Batch.prototype.'+mname+']need a Function here, but given ' + fn);

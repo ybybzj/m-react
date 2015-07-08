@@ -8,7 +8,7 @@ G.renderQueue
     .onFlush(onFlush)
     .onAddTarget(onMergeTask);
 
-export {redraw}
+export {redraw};
 
 function onFlush(task){
   var {processor, params} = task;

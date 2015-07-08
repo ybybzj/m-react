@@ -1,6 +1,4 @@
-export { NOOP, type, slice, hasOwn, _extend, extend, removeVoidValue, toArray, getHash,matchReg, getParentElFrom };
-
-function NOOP() {};
+function NOOP() {}
 
 var typeReg = /^\[object (\w+)\]$/;
 function type(o) {
@@ -14,12 +12,12 @@ function type(o) {
     return 'NaN';
   }
   var tm = Object.prototype.toString.call(o).match(typeReg);
-  return tm == null ? 'unknown': tm[1].toLowerCase();
+  return tm == null ? 'unknown' : tm[1].toLowerCase();
 }
 var _slice = Array.prototype.slice;
 function slice() {
   return _slice.apply(arguments[0], _slice.call(arguments, 1));
-};
+}
 
 function hasOwn(o, k) {
   return Object.prototype.hasOwnProperty.call(o, k);
@@ -39,7 +37,7 @@ function _extend(/*o ...*/ ) {
   if(i === l){
     return {};
   }
-  
+
   i++;
   while(i < l){
     o = arguments[i++];
@@ -60,7 +58,7 @@ function extend(/*o ...*/ ) {
 }
 function removeVoidValue(o){
   if(type(o) !== 'object'){
-    throw new TypeError('[removeVoidValue]param should be a object! given: '+ o);
+    throw new TypeError('[removeVoidValue]param should be a object! given: ' + o);
   }
   var result = {};
   Object.keys(o).forEach(function(k){
@@ -74,7 +72,7 @@ function removeVoidValue(o){
 //only flatten one level, since other case is rare
 function _flatten(a){
   var result = [], needFlatten = true;
-  for(let i=0,l = a.length; i < l; i++){
+  for(let i = 0, l = a.length; i < l; i++){
     let item = a[i];
     if(type(item) === 'array'){
       result.push(item);
@@ -123,7 +121,7 @@ function matchReg(str, reg){
 //  *     2 => TaskType.redraw | MergeType.contain(10)
 //  *     3 => TaskType.redraw | MergeType.replace(11)
 //  * @return {[types]}       [taskType, mergeType]
- 
+
 // function extractTaskTypes(tMask){
 //   return [(tMask&2)>>1, (tMask&1)];
 // }
@@ -136,11 +134,14 @@ function matchReg(str, reg){
 //                             return container !== el && container.contains(el);
 //                         };
 function getParentElFrom(inQEl, taskEl){
-  if(inQEl === taskEl) return taskEl;
+  if(inQEl === taskEl){
+    return taskEl;
+  }
   var comparePosResult = inQEl.compareDocumentPosition(taskEl);
-  if(comparePosResult&(16|8)){
+  if(comparePosResult & (16|8)){
     return comparePosResult&16 ? inQEl: taskEl;
   }else{
     return null;
   }
 }
+export { NOOP, type, slice, hasOwn, _extend, extend, removeVoidValue, toArray, getHash, matchReg, getParentElFrom };

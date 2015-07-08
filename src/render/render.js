@@ -5,7 +5,7 @@ import {
 import build from './build';
 import clear from './clear';
 
-export {render, _render};
+export {render};
 function render(root, vNode, forceRecreation, force){
   var task = {
     root: root,
@@ -19,13 +19,13 @@ function render(root, vNode, forceRecreation, force){
     mergeType: 1,// replace
     root: root,
     processor: _render,
-    params:[task]
+    params: [task]
   });
 }
 var html;
 var documentNode = {
   appendChild: function(node){
-    if(html === undefined) html = $document.createElement('html');
+    if(html === undefined) { html = $document.createElement('html'); }
     if($document.documentElement && $document.documentElement !== node){
       $document.replaceChild(node, $document.documentElement);
     }else{
@@ -52,7 +52,7 @@ function _render(task){
   if(isDocumentRoot && vNode.tag !== 'html') {
     vNode = {tag: 'html', attrs: {}, children: vNode};
   }
-  
+
   if(forceRecreation){
     reset(domNode);
   }
