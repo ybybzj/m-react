@@ -1,6 +1,7 @@
 {
   "src": {
-    "entries": ["src/**/*.js"]
+    "entries": ["src/**/*.js"],
+    "entry": "index.js"
   },
   "dest": {
     "build": "./build",
