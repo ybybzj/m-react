@@ -42,10 +42,15 @@ Batch.prototype.flush = function() {
   _ref = this._queue;
   for (_i = startPos, _len = _ref.length; _i < _len; _i++) {
     task = _ref[_i];
-    cb.call(null, task);
+    try{
+      cb.call(null, task);
+    }catch(e){
+      console[console.error ? 'error' : 'log'](e);
+      console.log(e.stack);
+    }
     elapsedTime = (new Date()) - startTime;
     if (elapsedTime > FRAME_BUDGET) {
-      console.log('frame budget overflow:', elapsedTime);
+      // console.log('frame budget overflow:', elapsedTime);
       _i++;
       break;
     }

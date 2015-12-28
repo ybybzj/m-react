@@ -265,10 +265,15 @@
     _ref = this._queue;
     for (_i = startPos, _len = _ref.length; _i < _len; _i++) {
       task = _ref[_i];
-      cb.call(null, task);
+      try {
+        cb.call(null, task);
+      } catch (e) {
+        console[console.error ? 'error' : 'log'](e);
+        console.log(e.stack);
+      }
       elapsedTime = new Date() - startTime;
       if (elapsedTime > FRAME_BUDGET) {
-        console.log('frame budget overflow:', elapsedTime);
+        // console.log('frame budget overflow:', elapsedTime);
         _i++;
         break;
       }
@@ -957,7 +962,7 @@
     })) {
       data.forEach(function (dataNode) {
         if (dataNode && dataNode.attrs && dataNode.attrs.key == null) {
-          dataNode.attrs.key = '__mithril__' + guid++;
+          dataNode.attrs.key = '__m-react__' + guid++;
         }
       });
     }
@@ -1602,7 +1607,7 @@
     var controller = function controller() {
       return (component.controller || NOOP).apply(this, args) || this;
     };
-
+    if (component.controller) controller.prototype = component.controller.prototype;
     var view = function view(ctrl) {
       if (arguments.length > 1) {
         args = args.concat(slice(arguments, 1));

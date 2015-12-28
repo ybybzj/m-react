@@ -116,7 +116,7 @@ function diffChildrenWithKey(data, cached, parentElement) {
   })) {
     data.forEach(function(dataNode) {
       if (dataNode && dataNode.attrs && dataNode.attrs.key == null) {
-        dataNode.attrs.key = '__mithril__' + (guid++);
+        dataNode.attrs.key = '__m-react__' + (guid++);
       }
     });
   }
