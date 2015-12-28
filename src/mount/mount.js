@@ -4,7 +4,7 @@ import {
 
 import {
   redraw
-} from '../update';
+} from '../update/index';
 
 import {type, NOOP} from '../utils';
 

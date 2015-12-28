@@ -11,7 +11,7 @@ import addEventListener from './addEvent';
 import removeEventListener from './removeEvent';
 import ProxyEvent from './proxyEvent';
 import {type, getHash} from '../utils';
-import {Map} from '../store';
+import {Map} from '../store/index';
 
 export default function DOMDelegator(doc){
   if(!this instanceof DOMDelegator){

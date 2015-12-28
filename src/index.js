@@ -1,6 +1,6 @@
-import {render, m} from './render';
-import {redraw} from './update';
-import {mount, component, createComponent} from './mount';
+import {render, m} from './render/index';
+import {redraw} from './update/index';
+import {mount, component, createComponent} from './mount/index';
 import {G} from './globals';
 import {_extend} from './utils';
 var mReact = m;

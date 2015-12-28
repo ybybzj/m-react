@@ -1,5 +1,5 @@
-import {Map} from './store';
-import DOMDelegator from './dom-delegator';
+import {Map} from './store/index';
+import DOMDelegator from './dom-delegator/index';
 import Batch from './update/batch';
 export var global = typeof window !== 'undefined' ? window : {};
 export var document = global.document;
