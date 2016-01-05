@@ -107,9 +107,13 @@ function _build(instance){
     configs[i]();
   }
 }
-export default function createComponent(options){
+
+export default function createComponent(options, mixins){
   if(type(options) !== 'object'){
     throw new TypeError('[createComponent]param should be a object! given: ' + options);
+  }
+  if(mixins){
+    options.mixins = [].concat(mixins, options.mixins).filter(Boolean);
   }
   var component = {},
       Factory = createComponentFactory(options);
@@ -177,11 +181,7 @@ function createComponentFactory(options){
 
   mixins = options.mixins || [];
   delete options.mixins;
-  if(type(mixins) === 'array'){
-    mixins = mixins.concat(options);
-  }else{
-    mixins = [mixins, options];
-  }
+  mixins = [].concat(mixins, options);
   mixinProto(factory.prototype, mixins);
   return factory;
 }
@@ -244,11 +244,11 @@ function _executeFn(obj, methodName){
   }
 }
 function _addToHead(arrToAdd, targetArr){
-  var i, l= arrToAdd.length, arr;
+  var i, l= arrToAdd.length, itemToAdd;
   for(i = 0; i < l; i++){
-    arr = arrToAdd[i];
-    if(targetArr.indexOf(arr) === -1){
-      targetArr.unshift(arr);
+    itemToAdd = arrToAdd[i];
+    if(type(itemToAdd) === 'object' && targetArr.indexOf(itemToAdd) === -1){
+      targetArr.unshift(itemToAdd);
     }
   }
   return targetArr;
