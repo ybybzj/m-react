@@ -1,4 +1,5 @@
 import {slice, type} from '../utils';
+import componentize, {isComponent} from '../mount/component';
 var tagReg = /(?:(^|#|\.)([^#\.\[\]]+))|(\[.+?\])/g,
   attrReg = /\[(.+?)(?:=("|'|)(.*?)\2)?\]/;
 
@@ -6,6 +7,10 @@ export default function m(){
   var tagStr = arguments[0],
       attrs = arguments[1],
       children = slice(arguments, 2);
+
+  if(isComponent(tagStr)){
+    return componentize(tagStr, attrs, children);
+  }
   if(type(tagStr) !== 'string'){
     throw new Error('selector in m(selector, attrs, children) should be a string');
   }

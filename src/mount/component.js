@@ -1,4 +1,4 @@
-import {slice, NOOP} from '../utils';
+import {slice, NOOP, type} from '../utils';
 function parameterize(component, args) {
   var controller = function() {
     return (component.controller || NOOP).apply(this, args) || this;
@@ -16,4 +16,8 @@ function parameterize(component, args) {
 
 export default function componentize(component) {
   return parameterize(component, slice(arguments, 1));
+}
+
+export function isComponent(obj){
+  return type(obj) === 'object' && type(obj.controller) === 'function' && type(obj.view) === 'function';
 }

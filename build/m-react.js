@@ -162,12 +162,43 @@
     }
   }
 
+  function parameterize(component, args) {
+    var controller = function controller() {
+      return (component.controller || NOOP).apply(this, args) || this;
+    };
+    if (component.controller) controller.prototype = component.controller.prototype;
+    var view = function view(ctrl) {
+      if (arguments.length > 1) {
+        args = args.concat(slice(arguments, 1));
+      }
+      return component.view.apply(component, args.length ? [ctrl].concat(args) : [ctrl]);
+    };
+    view.$original = component.view;
+    var output = { controller: controller, view: view };
+    if (args[0] && args[0].key != null) {
+      output.attrs = { key: args[0].key };
+    }
+    return output;
+  }
+
+  function componentize(component) {
+    return parameterize(component, slice(arguments, 1));
+  }
+
+  function isComponent(obj) {
+    return type(obj) === 'object' && type(obj.controller) === 'function' && type(obj.view) === 'function';
+  }
+
   var tagReg = /(?:(^|#|\.)([^#\.\[\]]+))|(\[.+?\])/g;
   var attrReg = /\[(.+?)(?:=("|'|)(.*?)\2)?\]/;
   function m() {
     var tagStr = arguments[0],
         attrs = arguments[1],
         children = slice(arguments, 2);
+
+    if (isComponent(tagStr)) {
+      return componentize(tagStr, attrs, children);
+    }
     if (type(tagStr) !== 'string') {
       throw new Error('selector in m(selector, attrs, children) should be a string');
     }
@@ -1601,29 +1632,6 @@
       update();
       return G.controllers[index];
     }
-  }
-
-  function parameterize(component, args) {
-    var controller = function controller() {
-      return (component.controller || NOOP).apply(this, args) || this;
-    };
-    if (component.controller) controller.prototype = component.controller.prototype;
-    var view = function view(ctrl) {
-      if (arguments.length > 1) {
-        args = args.concat(slice(arguments, 1));
-      }
-      return component.view.apply(component, args.length ? [ctrl].concat(args) : [ctrl]);
-    };
-    view.$original = component.view;
-    var output = { controller: controller, view: view };
-    if (args[0] && args[0].key != null) {
-      output.attrs = { key: args[0].key };
-    }
-    return output;
-  }
-
-  function componentize(component) {
-    return parameterize(component, slice(arguments, 1));
   }
 
   var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate', 'componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps', 'getInitialProps', 'getInitialState'];
