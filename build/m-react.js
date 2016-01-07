@@ -233,19 +233,19 @@
       }
     }
 
-    if (classes.length > 0) {
-      vNode.attrs[classAttrName] = classes.join(' ');
-    }
+    // if(classes.length > 0) { vNode.attrs[classAttrName] = classes.join(' '); }
 
     Object.keys(attrs).forEach(function (attrName) {
       var attrVal = attrs[attrName];
-      if (attrName === classAttrName && type(attrVal) !== 'string' && attrVal.trim() !== '') {
-        vNode.attrs[attrName] = (vNode.attrs[attrName] || '') + ' ' + attrVal;
+      if (attrName === classAttrName && type(attrVal) === 'string' && attrVal.trim() !== '') {
+        classes.push(attrVal);
+        vNode.attrs[attrName] = '';
       } else {
         vNode.attrs[attrName] = attrVal;
       }
     });
 
+    if (classes.length > 0) vNode.attrs[classAttrName] = classes.join(' ');
     return vNode;
   }
 
