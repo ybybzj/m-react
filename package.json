@@ -16,7 +16,7 @@
   "devDependencies": {
     "babel-preset-es2015-min": "^1.0.0",
     "browser-sync": "^2.7.6",
-    "gulp": "^3.8.11",
+    "gulp": "^3.9.0",
     "gulp-changed": "^1.2.1",
     "gulp-eslint": "^1.1.1",
     "gulp-if": "^1.2.5",

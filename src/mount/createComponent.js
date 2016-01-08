@@ -120,7 +120,8 @@ export default function createComponent(options, mixins){
   component.controller = function(props, children){
     var instance = new Factory(props, children);
     var ctrl = {
-      instance: instance
+      instance: instance,
+      _cachedValue: {}
     };
     ctrl.onunload = instance.onunload.bind(instance, instance.componentWillUnmount);
     if(type(instance.name) === 'string'){
@@ -188,12 +189,12 @@ function createComponentFactory(options){
 
 
 function makeView(){
-  var cachedValue = {};
+  // var cachedValue = {};
       // factory = createComponentFactory(options);
   return function componentView(ctrl, props, children){
     var instance = ctrl.instance,
-        oldProps = cachedValue.props,
-        oldState = cachedValue.state,
+        oldProps = ctrl._cachedValue.props,
+        oldState = ctrl._cachedValue.state,
         config = function(node, isInitialized, context, cached, redrawData){
           _executeFn(instance, 'setInternalProps', node, cached, redrawData);
           if(!isInitialized){
@@ -208,8 +209,8 @@ function makeView(){
       //updateProps
       instance.setProps(props, children);
        //cache previous instance
-      cachedValue.props = instance.props;
-      cachedValue.state = instance.state;
+      ctrl._cachedValue.props = instance.props;
+      ctrl._cachedValue.state = instance.state;
 
       if(instance.root != null){
         if(_executeFn(instance, 'shouldComponentUpdate', oldProps, oldState) === false){
