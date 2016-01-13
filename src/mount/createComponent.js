@@ -23,6 +23,9 @@ class Component{
     }
   }
   setProps(props, children){
+    if(type(props) !== 'object'){
+      props = {};
+    }
     if(this.componentWillReceiveProps){
       props = this.componentWillReceiveProps(props);
     }
