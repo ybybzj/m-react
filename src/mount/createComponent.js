@@ -1,17 +1,17 @@
 // import * as update from '../update';
-import {type, extend, slice, removeVoidValue, toArray} from '../utils';
+import {type, extend, slice, removeVoidValue, toArray, hasOwn} from '../utils';
 import {runtime as RT, G} from '../globals';
 import build from '../render/build';
 var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate', 'componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps', 'getInitialProps', 'getInitialState'];
 var pipedMethods = ['getInitialProps', 'getInitialState', 'componentWillReceiveProps'];
-var ignoreProps = ['setState', 'mixins', 'onunload', 'setInternalProps', 'redraw'];
+var ignoreProps = ['setState', 'mixins', 'onunload', 'setInternalProps', 'redraw', 'setProps'];
 
 class Component{
   constructor(props, children){
     if(type(props) !== 'object' && props != null){
       throw new TypeError('[Component]param for constructor should a object or null or undefined! given: ' + props);
     }
-    this.props = props || {};
+    this.props = extend(this.defaultProps, _fillWithDefaults(this.defaultProps, props));
     this.props.children = toArray(children);
     this.root = null;
     // this.state = {};
@@ -26,7 +26,10 @@ class Component{
     if(this.componentWillReceiveProps){
       props = this.componentWillReceiveProps(props);
     }
-    this.props = removeVoidValue(extend(this.props, props, {children: toArray(children)}));
+
+    this.props = removeVoidValue(_mergeProps(this.props, props));
+
+    this.props.children = toArray(children);
   }
   onunload(fn){
     if(type(fn) === 'function'){
@@ -106,6 +109,31 @@ function _build(instance){
   for(let i = 0, l= configs.length; i < l; i++){
     configs[i]();
   }
+}
+
+function _fillWithDefaults(defaults, o){
+  var result = extend(o);
+  if(Object(defaults) !== defaults){
+    return result;
+  }
+  Object.keys(result).forEach(function(k){
+    var v = result[k];
+    if(v === undefined && hasOwn(defaults, k)){
+      result[k] = defaults[k];
+    }
+  });
+  return result;
+}
+
+function _mergeProps(thisProps, props){
+  var result = extend(thisProps);
+  Object.keys(props).forEach(function(k){
+    var v = props[k];
+    if(v !== undefined){
+      result[k] = v;
+    }
+  });
+  return result;
 }
 
 export default function createComponent(options, mixins){

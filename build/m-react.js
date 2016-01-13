@@ -1636,7 +1636,7 @@
 
   var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate', 'componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps', 'getInitialProps', 'getInitialState'];
   var pipedMethods = ['getInitialProps', 'getInitialState', 'componentWillReceiveProps'];
-  var ignoreProps = ['setState', 'mixins', 'onunload', 'setInternalProps', 'redraw'];
+  var ignoreProps = ['setState', 'mixins', 'onunload', 'setInternalProps', 'redraw', 'setProps'];
 
   var Component = (function () {
     function Component(props, children) {
@@ -1645,7 +1645,7 @@
       if (type(props) !== 'object' && props != null) {
         throw new TypeError('[Component]param for constructor should a object or null or undefined! given: ' + props);
       }
-      this.props = props || {};
+      this.props = extend(this.defaultProps, _fillWithDefaults(this.defaultProps, props));
       this.props.children = toArray(children);
       this.root = null;
       // this.state = {};
@@ -1661,7 +1661,10 @@
       if (this.componentWillReceiveProps) {
         props = this.componentWillReceiveProps(props);
       }
-      this.props = removeVoidValue(extend(this.props, props, { children: toArray(children) }));
+
+      this.props = removeVoidValue(_mergeProps(this.props, props));
+
+      this.props.children = toArray(children);
     };
 
     Component.prototype.onunload = function onunload(fn) {
@@ -1754,6 +1757,31 @@
     for (var i = 0, l = configs.length; i < l; i++) {
       configs[i]();
     }
+  }
+
+  function _fillWithDefaults(defaults, o) {
+    var result = extend(o);
+    if (Object(defaults) !== defaults) {
+      return result;
+    }
+    Object.keys(result).forEach(function (k) {
+      var v = result[k];
+      if (v === undefined && hasOwn(defaults, k)) {
+        result[k] = defaults[k];
+      }
+    });
+    return result;
+  }
+
+  function _mergeProps(thisProps, props) {
+    var result = extend(thisProps);
+    Object.keys(props).forEach(function (k) {
+      var v = props[k];
+      if (v !== undefined) {
+        result[k] = v;
+      }
+    });
+    return result;
   }
 
   function createComponent(options, mixins) {
