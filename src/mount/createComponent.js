@@ -126,6 +126,9 @@ function _fillWithDefaults(defaults, o){
 }
 
 function _mergeProps(thisProps, props){
+  if(Object(props) !== props){
+    return thisProps;
+  }
   var result = extend(thisProps);
   Object.keys(props).forEach(function(k){
     var v = props[k];
