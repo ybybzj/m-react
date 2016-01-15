@@ -401,15 +401,14 @@ function diffVNode(data, cached, parentElement, index, shouldReattach, editable,
   return cached;
 }
 function _newElement(parentElement, namespace, data, index){
-  var domNode, domNodeIndex, insertIdx = index;
+  var domNode, domNodeIndex = index;
   if(parentElement && parentElement.childNodes.length){
-    domNodeIndex = _findDomNodeByRef(parentElement, index);
-    if(domNodeIndex && domNodeIndex[0]){
-      insertIdx = domNodeIndex[1];
-      if(domNodeIndex[0].tagName.toLowerCase() == data.tag.toLowerCase()){
-        return [domNodeIndex[0], null];
+    [domNode, domNodeIndex] = _findDomNodeByRef(parentElement, index);
+    if(domNode){
+      if(domNode.tagName.toLowerCase() != data.tag.toLowerCase() || domNode.id != data.attrs.id){
+        clear([domNode]);
       }else{
-        clear([domNodeIndex[0]]);
+        return [domNode, null];
       }
     }
   }
@@ -420,7 +419,7 @@ function _newElement(parentElement, namespace, data, index){
     domNode = namespace === undefined ? $document.createElement(data.tag) : $document.createElementNS(namespace, data.tag);
   }
   domNode.setAttribute('data-mref', index);
-  return [domNode, insertIdx];
+  return [domNode, domNodeIndex];
 }
 function _findDomNodeByRef(parentElement, ref){
   var i = 0, l = parentElement.childNodes.length,
@@ -431,7 +430,7 @@ function _findDomNodeByRef(parentElement, ref){
       return [childNode, i];
     }
   }
-  return null;
+  return [];
 }
 
 function diffTextNode(data, cached, parentElement, parentTag, index, shouldReattach, editable) {
