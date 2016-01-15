@@ -1318,7 +1318,7 @@
         return [childNode, i];
       }
     }
-    return [];
+    return [null, ref];
   }
 
   function diffTextNode(data, cached, parentElement, parentTag, index, shouldReattach, editable) {
