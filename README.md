@@ -16,7 +16,12 @@ I'm not trying to build a drop-in replacement for React, just mimic the taste. P
 
 Usage
 ------
-code:
+### installation:
+```js
+$ npm install m-react
+```
+
+### code:
 ```javascript
     var m = require('m-react');
     var MyComponent = m.createComponent({
