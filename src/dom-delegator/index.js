@@ -10,7 +10,7 @@ import {
 import addEventListener from './addEvent';
 import removeEventListener from './removeEvent';
 import ProxyEvent from './proxyEvent';
-import {type, getHash} from '../utils';
+import {type, getHash, NOOP} from '../utils';
 import {Map} from '../store/index';
 
 export default function DOMDelegator(doc){
@@ -31,6 +31,10 @@ export default function DOMDelegator(doc){
 var proto = DOMDelegator.prototype;
 
 proto.on = function on(el, evType, handler){
+  // safari hack:fix the problem that sometimes click event won't be captured
+  if(evType === 'click'){
+    el.onclick = NOOP;
+  }
   var evStore = getEvStore(this.domEvHandlerMap, el, getHash());
   addListener(evStore, evType, this, handler);
   return this;
@@ -47,6 +51,11 @@ proto.off = function off(el, evType, handler){
     removeListener(evStore, evType, this);
   }else{
     removeAllListener(evStore, this);
+  }
+
+  // refer to [safari hack]
+  if(arguments.length < 2 || evType === 'click' ){
+    el.onclick = null;
   }
 
   if(Object.keys(evStore).length === 0){
