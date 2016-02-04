@@ -1963,7 +1963,7 @@
       for (; i < l; i++) {
         fn = fns[i];
         result = fn.apply(self, args);
-        args = isPiped ? result : args;
+        args = isPiped ? [result] : args;
       }
       return result;
     };
