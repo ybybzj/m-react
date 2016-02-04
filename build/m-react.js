@@ -1879,6 +1879,8 @@
     delete options.mixins;
     mixins = [].concat(mixins, options);
     mixinProto(factory.prototype, mixins);
+
+    factory.prototype._ctor = factory.prototype;
     return factory;
   }
 
