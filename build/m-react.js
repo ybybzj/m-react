@@ -1595,7 +1595,7 @@
 
   var topComponent;
 
-  function mount(root, component, forceRecreation) {
+  function mount(root, component, forceRecreation, isSync) {
     if (!root) {
       throw new Error('Please ensure the DOM element exists before rendering a template into it.');
     }
@@ -1640,7 +1640,7 @@
         G.components[index] = component;
         G.recreations[index] = forceRecreation;
       }
-      update();
+      update(isSync);
       return G.controllers[index];
     }
   }

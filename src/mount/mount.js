@@ -10,7 +10,7 @@ import {type, NOOP} from '../utils';
 
 var topComponent;
 
-export default function mount(root, component, forceRecreation) {
+export default function mount(root, component, forceRecreation, isSync) {
   if (!root) {
     throw new Error('Please ensure the DOM element exists before rendering a template into it.');
   }
@@ -52,7 +52,7 @@ export default function mount(root, component, forceRecreation) {
       G.components[index] = component;
       G.recreations[index] = forceRecreation;
     }
-    redraw();
+    redraw(isSync);
     return G.controllers[index];
   }
 }
