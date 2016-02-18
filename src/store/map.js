@@ -48,8 +48,9 @@ Map.prototype = {
     }
   },
   remove: function(key) {
-    var i = this._index;
+    var i;
     if (this.has(key)) {
+      i = this._index;
       this._keys.splice(i, 1);
       this._values.splice(i, 1);
     }
