@@ -1605,45 +1605,30 @@
       index = G.roots.length;
     }
 
-    var isPrevented = false;
-    var event = {
-      preventDefault: function preventDefault() {
-        isPrevented = true;
-        G.computePreRedrawHook = G.computePostRedrawHook = null;
-      }
-    };
     G.unloaders.each(function (unloader, controller) {
-      unloader.call(controller, event);
+      unloader.call(controller);
       controller.onunload = null;
     });
 
-    if (isPrevented) {
-      G.unloaders.each(function (unloader, controller) {
-        controller.onunload = unloader;
-      });
-    } else {
-      G.unloaders.clear();
-    }
+    G.unloaders.clear();
 
     if (G.controllers[index] && type(G.controllers[index].onunload) === 'function') {
-      G.controllers[index].onunload(event);
+      G.controllers[index].onunload();
     }
 
-    if (!isPrevented) {
-      G.roots[index] = root;
-      var currentComponent = topComponent = component = component || { controller: NOOP };
-      var constructor = component.controller || NOOP;
-      var controller = new constructor();
-      //controllers may call m.mount recursively (via m.route redirects, for example)
-      //this conditional ensures only the last recursive m.mount call is applied
-      if (currentComponent === topComponent) {
-        G.controllers[index] = controller;
-        G.components[index] = component;
-        G.recreations[index] = forceRecreation;
-      }
-      update(isSync);
-      return G.controllers[index];
+    G.roots[index] = root;
+    var currentComponent = topComponent = component = component || { controller: NOOP };
+    var constructor = component.controller || NOOP;
+    var controller = new constructor();
+    //controllers may call m.mount recursively (via m.route redirects, for example)
+    //this conditional ensures only the last recursive m.mount call is applied
+    if (currentComponent === topComponent) {
+      G.controllers[index] = controller;
+      G.components[index] = component;
+      G.recreations[index] = forceRecreation;
     }
+    update(isSync);
+    return G.controllers[index];
   }
 
   var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate', 'componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps', 'getInitialProps', 'getInitialState'];
@@ -1657,7 +1642,7 @@
       if (type(props) !== 'object' && props != null) {
         throw new TypeError('[Component]param for constructor should a object or null or undefined! given: ' + props);
       }
-      this.props = extend(this.defaultProps, _fillWithDefaults(this.defaultProps, props));
+      this.props = _fillWithDefaults(this.defaultProps, props);
       this.props.children = toArray(children);
       this.root = null;
       // this.state = {};
@@ -1677,7 +1662,7 @@
         props = this.componentWillReceiveProps(props);
       }
 
-      this.props = removeVoidValue(_mergeProps(this.props, props));
+      this.props = _fillWithDefaults(this.defaultProps, props);
 
       this.props.children = toArray(children);
     };
@@ -1775,28 +1760,16 @@
   }
 
   function _fillWithDefaults(defaults, o) {
-    var result = extend(o);
+    var result = removeVoidValue(extend(o));
     if (Object(defaults) !== defaults) {
       return result;
     }
-    Object.keys(result).forEach(function (k) {
-      var v = result[k];
-      if (v === undefined && hasOwn(defaults, k)) {
-        result[k] = defaults[k];
-      }
-    });
-    return result;
-  }
 
-  function _mergeProps(thisProps, props) {
-    if (Object(props) !== props) {
-      return thisProps;
-    }
-    var result = extend(thisProps);
-    Object.keys(props).forEach(function (k) {
-      var v = props[k];
-      if (v !== undefined) {
-        result[k] = v;
+    Object.keys(defaults).forEach(function (k) {
+      var dv = defaults[k];
+      var rv = result[k];
+      if (rv === undefined) {
+        result[k] = dv;
       }
     });
     return result;
