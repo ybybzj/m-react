@@ -22,11 +22,11 @@ class Component{
       this.state = this.getInitialState(this.props);
     }
   }
-  setProps(props, children){
+  setProps(props, children, isPropsUpdate){
     if(type(props) !== 'object'){
       props = {};
     }
-    if(this.componentWillReceiveProps){
+    if(isPropsUpdate && this.componentWillReceiveProps){
       props = this.componentWillReceiveProps(props);
     }
 
@@ -220,6 +220,7 @@ function makeView(){
     var instance = ctrl.instance,
         oldProps = ctrl._cachedValue.props,
         oldState = ctrl._cachedValue.state,
+        isPropsUpdate = ctrl._cachedValue.prevProps !== props,
         config = function(node, isInitialized, context, cached, redrawData){
           _executeFn(instance, 'setInternalProps', node, cached, redrawData);
           if(!isInitialized){
@@ -232,7 +233,8 @@ function makeView(){
           }
         };
       //updateProps
-      instance.setProps(props, children);
+      ctrl._cachedValue.prevProps = props;
+      instance.setProps(props, children, isPropsUpdate);
        //cache previous instance
       ctrl._cachedValue.props = instance.props;
       ctrl._cachedValue.state = instance.state;
