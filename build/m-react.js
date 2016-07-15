@@ -1654,11 +1654,11 @@
       }
     }
 
-    Component.prototype.setProps = function setProps(props, children) {
+    Component.prototype.setProps = function setProps(props, children, isPropsUpdate) {
       if (type(props) !== 'object') {
         props = {};
       }
-      if (this.componentWillReceiveProps) {
+      if (isPropsUpdate && this.componentWillReceiveProps) {
         props = this.componentWillReceiveProps(props);
       }
 
@@ -1865,6 +1865,7 @@
       var instance = ctrl.instance,
           oldProps = ctrl._cachedValue.props,
           oldState = ctrl._cachedValue.state,
+          isPropsUpdate = ctrl._cachedValue.prevProps !== props,
           config = function config(node, isInitialized, context, cached, redrawData) {
         _executeFn(instance, 'setInternalProps', node, cached, redrawData);
         if (!isInitialized) {
@@ -1877,7 +1878,8 @@
         }
       };
       //updateProps
-      instance.setProps(props, children);
+      ctrl._cachedValue.prevProps = props;
+      instance.setProps(props, children, isPropsUpdate);
       //cache previous instance
       ctrl._cachedValue.props = instance.props;
       ctrl._cachedValue.state = instance.state;
