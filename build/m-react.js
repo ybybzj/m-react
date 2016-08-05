@@ -796,6 +796,12 @@
           G.unloaders.remove(controller); //unload function should only execute once
         }
       }
+      vNode.controllers.length = 0;
+      if (vNode.views && vNode.views.length) {
+        vNode.views.length = 0;
+      }
+
+      delete vNode.componentName;
     }
     if (vNode.children) {
       if (type(vNode.children) === 'array') {
