@@ -164,7 +164,7 @@ function diffChildrenWithKey(data, cached, parentElement) {
     }
     return data.some(function(dataNode, idx) {
       var cachedNode = cached[idx];
-      return cachedNode.attrs && dataNode.attrs && cachedNode.attrs.key !== dataNode.attrs.key;
+      return _key(cachedNode) !== _key(dataNode);
     });
   }
 
