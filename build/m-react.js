@@ -4,15 +4,6 @@
   global.mReact = factory();
 }(this, function () { 'use strict';
 
-  var babelHelpers = {};
-
-  babelHelpers.classCallCheck = function (instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  };
-
-  babelHelpers;
   function NOOP() {}
 
   var typeReg = /^\[object (\w+)\]$/;
@@ -692,7 +683,7 @@
   }
 
   if (!requestAnimationFrame) {
-    requestAnimationFrame = function (callback) {
+    requestAnimationFrame = function requestAnimationFrame(callback) {
       var currTime = Date.now ? Date.now() : new Date().getTime();
       var timeToCall = Math.max(0, FRAME_BUDGET - (currTime - lastTime));
       var id = setTimeout(function () {
@@ -704,7 +695,7 @@
   }
 
   if (!cancelAnimationFrame) {
-    cancelAnimationFrame = function (id) {
+    cancelAnimationFrame = function cancelAnimationFrame(id) {
       return clearTimeout(id);
     };
   }
@@ -805,12 +796,14 @@
     }
     if (vNode.children) {
       if (type(vNode.children) === 'array') {
-        for (var i = 0, l = vNode.children.length; i < l; i++) {
-          var child = vNode.children[i];
+        for (var _i = 0, _l = vNode.children.length; _i < _l; _i++) {
+          var child = vNode.children[_i];
           unload(child);
         }
+        vNode.children.length = 0;
       } else if (vNode.children.tag) {
         unload(vNode.children);
+        vNode.children = null;
       }
     }
   }
@@ -835,48 +828,48 @@
               domNode[attrName] = dataAttr;
               // bind handler to domNode for a delegation event
             } else if ((evMatch = matchReg(attrName, evAttrReg)) && evMatch[1].length) {
-                var evType = evMatch[1].toLowerCase();
-                domDelegator$1.off(domNode, evType);
-                if (isHandler(dataAttr)) {
-                  domDelegator$1.on(domNode, evType, dataAttr);
-                }
+              var evType = evMatch[1].toLowerCase();
+              domDelegator$1.off(domNode, evType);
+              if (isHandler(dataAttr)) {
+                domDelegator$1.on(domNode, evType, dataAttr);
               }
-              //handle `style: {...}`
-              else if (attrName === 'style' && dataAttr != null && type(dataAttr) === 'object') {
-                  Object.keys(dataAttr).forEach(function (rule) {
-                    if (cachedAttr == null || cachedAttr[rule] !== dataAttr[rule]) {
-                      domNode.style[rule] = dataAttr[rule];
+            }
+            //handle `style: {...}`
+            else if (attrName === 'style' && dataAttr != null && type(dataAttr) === 'object') {
+                Object.keys(dataAttr).forEach(function (rule) {
+                  if (cachedAttr == null || cachedAttr[rule] !== dataAttr[rule]) {
+                    domNode.style[rule] = dataAttr[rule];
+                  }
+                });
+                if (type(cachedAttr) === 'object') {
+                  Object.keys(cachedAttr).forEach(function (rule) {
+                    if (!(rule in dataAttr)) {
+                      domNode.style[rule] = '';
                     }
                   });
-                  if (type(cachedAttr) === 'object') {
-                    Object.keys(cachedAttr).forEach(function (rule) {
-                      if (!(rule in dataAttr)) {
-                        domNode.style[rule] = '';
-                      }
-                    });
+                }
+              }
+              //handle SVG
+              else if (namespace != null) {
+                  if (attrName === 'href') {
+                    domNode.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataAttr);
+                  } else if (attrName === 'className') {
+                    domNode.setAttribute('class', dataAttr);
+                  } else {
+                    domNode.setAttribute(attrName, dataAttr);
                   }
                 }
-                //handle SVG
-                else if (namespace != null) {
-                    if (attrName === 'href') {
-                      domNode.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataAttr);
-                    } else if (attrName === 'className') {
-                      domNode.setAttribute('class', dataAttr);
-                    } else {
-                      domNode.setAttribute(attrName, dataAttr);
+                //handle cases that are properties (but ignore cases where we should use setAttribute instead)
+                //- list and form are typically used as strings, but are DOM element references in js
+                //- when using CSS selectors (e.g. `m('[style='']')`), style is used as a string, but it's an object in js
+                else if (attrName in domNode && !(attrName === 'list' || attrName === 'style' || attrName === 'form' || attrName === 'type' || attrName === 'width' || attrName === 'height')) {
+                    //#348 don't set the value if not needed otherwise cursor placement breaks in Chrome
+                    if (tag !== 'input' || domNode[attrName] !== dataAttr) {
+                      domNode[attrName] = dataAttr;
                     }
+                  } else {
+                    domNode.setAttribute(attrName, dataAttr);
                   }
-                  //handle cases that are properties (but ignore cases where we should use setAttribute instead)
-                  //- list and form are typically used as strings, but are DOM element references in js
-                  //- when using CSS selectors (e.g. `m('[style='']')`), style is used as a string, but it's an object in js
-                  else if (attrName in domNode && !(attrName === 'list' || attrName === 'style' || attrName === 'form' || attrName === 'type' || attrName === 'width' || attrName === 'height')) {
-                      //#348 don't set the value if not needed otherwise cursor placement breaks in Chrome
-                      if (tag !== 'input' || domNode[attrName] !== dataAttr) {
-                        domNode[attrName] = dataAttr;
-                      }
-                    } else {
-                      domNode.setAttribute(attrName, dataAttr);
-                    }
         } catch (e) {
           //swallow IE's invalid argument errors to mimic HTML's fallback-to-doing-nothing-on-invalid-attributes behavior
           if (e.message.indexOf('Invalid argument') < 0) {
@@ -1017,7 +1010,7 @@
       // 2), 3)
       data.forEach(_dataNodeToExisting);
       // 4)
-      var changes = undefined,
+      var changes = void 0,
           newCached = new Array(cached.length);
       changes = Object.keys(existing).map(function (key) {
         return existing[key];
@@ -1056,7 +1049,7 @@
       }
       return data.some(function (dataNode, idx) {
         var cachedNode = cached[idx];
-        return cachedNode.attrs && dataNode.attrs && cachedNode.attrs.key !== dataNode.attrs.key;
+        return _key(cachedNode) !== _key(dataNode);
       });
     }
 
@@ -1127,9 +1120,9 @@
       //remove items from the end of the array if the new array is shorter than the old one
       //if errors ever happen here, the issue is most likely a bug in the construction of the `cached` data structure somewhere earlier in the program
       /*eslint no-cond-assign:0*/
-      for (var i = 0, node; node = cached.nodes[i]; i++) {
+      for (var _i = 0, node; node = cached.nodes[_i]; _i++) {
         if (node.parentNode != null && nodes.indexOf(node) < 0) {
-          clear([node], [cached[i]]);
+          clear([node], [cached[_i]]);
         }
       }
       if (data.length < cached.length) {
@@ -1637,13 +1630,118 @@
     return G.controllers[index];
   }
 
+  var jsx = function () {
+    var REACT_ELEMENT_TYPE = typeof Symbol === "function" && Symbol.for && Symbol.for("react.element") || 0xeac7;
+    return function createRawReactElement(type, props, key, children) {
+      var defaultProps = type && type.defaultProps;
+      var childrenLength = arguments.length - 3;
+
+      if (!props && childrenLength !== 0) {
+        props = {};
+      }
+
+      if (props && defaultProps) {
+        for (var propName in defaultProps) {
+          if (props[propName] === void 0) {
+            props[propName] = defaultProps[propName];
+          }
+        }
+      } else if (!props) {
+        props = defaultProps || {};
+      }
+
+      if (childrenLength === 1) {
+        props.children = children;
+      } else if (childrenLength > 1) {
+        var childArray = Array(childrenLength);
+
+        for (var i = 0; i < childrenLength; i++) {
+          childArray[i] = arguments[i + 3];
+        }
+
+        props.children = childArray;
+      }
+
+      return {
+        $$typeof: REACT_ELEMENT_TYPE,
+        type: type,
+        key: key === undefined ? null : '' + key,
+        ref: null,
+        props: props,
+        _owner: null
+      };
+    };
+  }();
+
+  var classCallCheck = function (instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  };
+
+  var createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
+  var slicedToArray = function () {
+    function sliceIterator(arr, i) {
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _e = undefined;
+
+      try {
+        for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+          _arr.push(_s.value);
+
+          if (i && _arr.length === i) break;
+        }
+      } catch (err) {
+        _d = true;
+        _e = err;
+      } finally {
+        try {
+          if (!_n && _i["return"]) _i["return"]();
+        } finally {
+          if (_d) throw _e;
+        }
+      }
+
+      return _arr;
+    }
+
+    return function (arr, i) {
+      if (Array.isArray(arr)) {
+        return arr;
+      } else if (Symbol.iterator in Object(arr)) {
+        return sliceIterator(arr, i);
+      } else {
+        throw new TypeError("Invalid attempt to destructure non-iterable instance");
+      }
+    };
+  }();
+
   var extendMethods = ['componentWillMount', 'componentDidMount', 'componentWillUpdate', 'componentDidUpdate', 'componentWillUnmount', 'componentWillDetached', 'componentWillReceiveProps', 'getInitialProps', 'getInitialState'];
   var pipedMethods = ['getInitialProps', 'getInitialState', 'componentWillReceiveProps'];
   var ignoreProps = ['setState', 'mixins', 'onunload', 'setInternalProps', 'redraw', 'setProps'];
 
-  var Component = (function () {
+  var Component = function () {
     function Component(props, children) {
-      babelHelpers.classCallCheck(this, Component);
+      classCallCheck(this, Component);
 
       if (type(props) !== 'object' && props != null) {
         throw new TypeError('[Component]param for constructor should a object or null or undefined! given: ' + props);
@@ -1717,6 +1815,7 @@
 
     // }
 
+
     Component.prototype.redraw = function redraw() {
       if (this.redrawData == null) {
         return;
@@ -1742,7 +1841,7 @@
     };
 
     return Component;
-  })();
+  }();
 
   function _build(instance) {
     var viewFn = instance.viewFn;
