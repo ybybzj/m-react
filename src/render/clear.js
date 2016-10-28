@@ -45,10 +45,8 @@ function unload(vNode) {
         let child = vNode.children[i];
         unload(child);
       }
-      vNode.children.length = 0;
     } else if (vNode.children.tag) {
       unload(vNode.children);
-      vNode.children = null;
     }
   }
 }

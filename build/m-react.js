@@ -800,10 +800,8 @@
           var child = vNode.children[_i];
           unload(child);
         }
-        vNode.children.length = 0;
       } else if (vNode.children.tag) {
         unload(vNode.children);
-        vNode.children = null;
       }
     }
   }
