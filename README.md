@@ -26,12 +26,17 @@ $ npm install m-react
     var m = require('m-react');
     var MyComponent = m.createComponent({
         render: function(props, state){
-            return (
-                <div>
-                    <input type={"text"} evChange={this.onChange)}/>
-                    <p backgroundColor={props.backgroundColor}>{state.date}</p>
-                </div>
-            );
+            return m('div', [
+              m('input', {
+                type: 'text',
+                evChange: this.onChange
+              }),
+              m('p', {
+                style: {
+                  'backgroundColor': props.backgroundColor
+                }
+              }, state.date)
+            ]);
         },
         getInitialState: function(){
             return {
@@ -56,12 +61,12 @@ $ npm install m-react
 
     });
 
-    m.mount(document.body, <MyComponent backgroundColor="yellow"/>);
+    m.mount(document.body, m(MyComponent, { backgroundColor:"yellow" }));
 ```
 on server:
 ```javascript
     var renderToString = require('m-react/renderToString');
-    var outputHTML = renderToString(m.component(MyComponent, {backgroundColor: 'yellow'}), 0);//add second param to enable dom reservation in browser, do not pass this parameter if only want to output pure html string
+    var outputHTML = renderToString(m(MyComponent, {backgroundColor: 'yellow'}), 0);//add second param to enable dom reservation in browser, do not pass this parameter if only want to output pure html string
     ...
 ```
 output html:
