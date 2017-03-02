@@ -12,7 +12,7 @@ function Batch(opts) {
   var cb = this.options.onFlush;
   this._cb = type(cb) === 'function' ? cb : NOOP;
   this._queue = [];
-  this._startPos = 0;
+  // this._startPos = 0;
   this.flush = this.flush.bind(this);
 }
 Batch.prototype.addTarget = function(target) {
@@ -37,11 +37,12 @@ Batch.prototype.flush = function() {
   var startTime = new Date(),
     elapsedTime,
     cb = this._cb,
-    startPos = this._startPos,
-    task, _i, _len, _ref;
-  _ref = this._queue;
-  for (_i = startPos, _len = _ref.length; _i < _len; _i++) {
-    task = _ref[_i];
+    // startPos = this._startPos,
+    task;
+    // _i, _len, _ref;
+  while(this._queue.length) {
+    task = this._queue.shift();
+
     try{
       cb.call(null, task);
     }catch(e){
@@ -51,13 +52,28 @@ Batch.prototype.flush = function() {
     elapsedTime = (new Date()) - startTime;
     if (elapsedTime > FRAME_BUDGET) {
       // console.log('frame budget overflow:', elapsedTime);
-      _i++;
       break;
     }
   }
+  // _ref = this._queue;
+  // for (_i = startPos, _len = _ref.length; _i < _len; _i++) {
+  //   task = _ref[_i];
+  //   try{
+  //     cb.call(null, task);
+  //   }catch(e){
+  //     console[console.error ? 'error' : 'log'](e);
+  //     console.log(e.stack);
+  //   }
+  //   elapsedTime = (new Date()) - startTime;
+  //   if (elapsedTime > FRAME_BUDGET) {
+  //     // console.log('frame budget overflow:', elapsedTime);
+  //     _i++;
+  //     break;
+  //   }
+  // }
 
-  this._queue.splice(0, _i);
-  this._startPos = 0;
+  // this._queue.splice(0, _i);
+  // this._startPos = 0;
 
   if (this._queue.length) {
     this.scheduleFlush();

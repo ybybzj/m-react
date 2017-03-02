@@ -252,7 +252,7 @@
     var cb = this.options.onFlush;
     this._cb = type(cb) === 'function' ? cb : NOOP;
     this._queue = [];
-    this._startPos = 0;
+    // this._startPos = 0;
     this.flush = this.flush.bind(this);
   }
   Batch.prototype.addTarget = function (target) {
@@ -279,14 +279,13 @@
     var startTime = new Date(),
         elapsedTime,
         cb = this._cb,
-        startPos = this._startPos,
-        task,
-        _i,
-        _len,
-        _ref;
-    _ref = this._queue;
-    for (_i = startPos, _len = _ref.length; _i < _len; _i++) {
-      task = _ref[_i];
+
+    // startPos = this._startPos,
+    task;
+    // _i, _len, _ref;
+    while (this._queue.length) {
+      task = this._queue.shift();
+
       try {
         cb.call(null, task);
       } catch (e) {
@@ -296,13 +295,28 @@
       elapsedTime = new Date() - startTime;
       if (elapsedTime > FRAME_BUDGET) {
         // console.log('frame budget overflow:', elapsedTime);
-        _i++;
         break;
       }
     }
+    // _ref = this._queue;
+    // for (_i = startPos, _len = _ref.length; _i < _len; _i++) {
+    //   task = _ref[_i];
+    //   try{
+    //     cb.call(null, task);
+    //   }catch(e){
+    //     console[console.error ? 'error' : 'log'](e);
+    //     console.log(e.stack);
+    //   }
+    //   elapsedTime = (new Date()) - startTime;
+    //   if (elapsedTime > FRAME_BUDGET) {
+    //     // console.log('frame budget overflow:', elapsedTime);
+    //     _i++;
+    //     break;
+    //   }
+    // }
 
-    this._queue.splice(0, _i);
-    this._startPos = 0;
+    // this._queue.splice(0, _i);
+    // this._startPos = 0;
 
     if (this._queue.length) {
       this.scheduleFlush();
@@ -1454,9 +1468,9 @@
   // var domNodeCache = [], vNodeCache = Object.create(null);
   var domCacheMap = G.domCacheMap;
   function _render(task) {
-    var root = task.root;
-    var vNode = task.vNode;
-    var forceRecreation = task.forceRecreation;
+    var root = task.root,
+        vNode = task.vNode,
+        forceRecreation = task.forceRecreation;
 
     if (!root) {
       throw new Error('Ensure the DOM element being passed to m.route/m.mount/m.render is not undefined.');
@@ -1552,8 +1566,8 @@
   G.renderQueue.onFlush(onFlush).onAddTarget(onMergeTask);
 
   function onFlush(task) {
-    var processor = task.processor;
-    var params = task.params;
+    var processor = task.processor,
+        params = task.params;
 
     if (typeof processor === 'function') {
       processor.apply(null, params);
@@ -1668,6 +1682,119 @@
         props: props,
         _owner: null
       };
+    };
+  }();
+
+  var asyncGenerator = function () {
+    function AwaitValue(value) {
+      this.value = value;
+    }
+
+    function AsyncGenerator(gen) {
+      var front, back;
+
+      function send(key, arg) {
+        return new Promise(function (resolve, reject) {
+          var request = {
+            key: key,
+            arg: arg,
+            resolve: resolve,
+            reject: reject,
+            next: null
+          };
+
+          if (back) {
+            back = back.next = request;
+          } else {
+            front = back = request;
+            resume(key, arg);
+          }
+        });
+      }
+
+      function resume(key, arg) {
+        try {
+          var result = gen[key](arg);
+          var value = result.value;
+
+          if (value instanceof AwaitValue) {
+            Promise.resolve(value.value).then(function (arg) {
+              resume("next", arg);
+            }, function (arg) {
+              resume("throw", arg);
+            });
+          } else {
+            settle(result.done ? "return" : "normal", result.value);
+          }
+        } catch (err) {
+          settle("throw", err);
+        }
+      }
+
+      function settle(type, value) {
+        switch (type) {
+          case "return":
+            front.resolve({
+              value: value,
+              done: true
+            });
+            break;
+
+          case "throw":
+            front.reject(value);
+            break;
+
+          default:
+            front.resolve({
+              value: value,
+              done: false
+            });
+            break;
+        }
+
+        front = front.next;
+
+        if (front) {
+          resume(front.key, front.arg);
+        } else {
+          back = null;
+        }
+      }
+
+      this._invoke = send;
+
+      if (typeof gen.return !== "function") {
+        this.return = undefined;
+      }
+    }
+
+    if (typeof Symbol === "function" && Symbol.asyncIterator) {
+      AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
+        return this;
+      };
+    }
+
+    AsyncGenerator.prototype.next = function (arg) {
+      return this._invoke("next", arg);
+    };
+
+    AsyncGenerator.prototype.throw = function (arg) {
+      return this._invoke("throw", arg);
+    };
+
+    AsyncGenerator.prototype.return = function (arg) {
+      return this._invoke("return", arg);
+    };
+
+    return {
+      wrap: function (fn) {
+        return function () {
+          return new AsyncGenerator(fn.apply(this, arguments));
+        };
+      },
+      await: function (value) {
+        return new AwaitValue(value);
+      }
     };
   }();
 
@@ -1842,15 +1969,16 @@
   }();
 
   function _build(instance) {
-    var viewFn = instance.viewFn;
-    var data = viewFn[0](viewFn[1]);
-    var key = instance.props.key;
-    var _instance$redrawData = instance.redrawData;
-    var parentElement = _instance$redrawData[0];
-    var index = _instance$redrawData[1];
-    var editable = _instance$redrawData[2];
-    var namespace = _instance$redrawData[3];
-    var configs = [];
+    var viewFn = instance.viewFn,
+        data = viewFn[0](viewFn[1]),
+        key = instance.props.key,
+        _instance$redrawData = instance.redrawData,
+        parentElement = _instance$redrawData[0],
+        index = _instance$redrawData[1],
+        editable = _instance$redrawData[2],
+        namespace = _instance$redrawData[3],
+        configs = [];
+
     if (key != null) {
       data.attrs = data.attrs || {};
       data.attrs.key = key;
