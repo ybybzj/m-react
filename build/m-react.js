@@ -1595,7 +1595,7 @@
   function canBeMerged(taskInQ, task) {
     var inQRoot = taskInQ.root,
         tRoot = task.root;
-    if (taskInQ.mergeType & task.mergeType) {
+    if (taskInQ.mergeType | task.mergeType) {
       // at least one of them are replace
       return inQRoot === tRoot ? task : null;
     } else {

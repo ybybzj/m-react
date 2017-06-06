@@ -37,7 +37,7 @@ function onMergeTask(queue, task){
 }
 function canBeMerged(taskInQ, task){
   var inQRoot = taskInQ.root, tRoot = task.root;
-  if(taskInQ.mergeType&task.mergeType){// at least one of them are replace
+  if(taskInQ.mergeType | task.mergeType){// at least one of them are replace
     return inQRoot === tRoot? task: null;
   }else{// both of them are contain
     var parent = getParentElFrom(inQRoot, tRoot);
