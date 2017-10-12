@@ -3,6 +3,10 @@ import componentize, {isComponent} from '../mount/component';
 var tagReg = /(?:(^|#|\.)([^#\.\[\]]+))|(\[.+?\])/g,
   attrReg = /\[(.+?)(?:=("|'|)(.*?)\2)?\]/;
 
+function isVnode(obj) {
+  return type(obj) === 'object' && type(obj.tag) === 'string' && type(obj.attrs) === 'object';
+}
+
 export default function m(){
   var tagStr = arguments[0],
       attrs = arguments[1],
@@ -11,6 +15,15 @@ export default function m(){
   if(isComponent(tagStr)){
     return componentize(tagStr, attrs, children);
   }
+
+  if(type(tagStr) === 'function'){
+    return tagStr(attrs);
+  }
+
+  if(isVnode(tagStr)||Array.isArray(tagStr) && tagStr.every(function(v){return isVnode(v) || v == null; })){
+    return tagStr;
+  }
+
   if(type(tagStr) !== 'string'){
     throw new Error('selector in m(selector, attrs, children) should be a string');
   }
