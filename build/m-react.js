@@ -1021,7 +1021,18 @@
     });
     // add keys to all items if at least one of items has a key attribute
     var guid = 0;
-    if (data.some(function (dataNode) {
+    if (data.some(function (dataNode, idx) {
+      //while item indicates "retain", and corresponding cache item has a key,
+      //assign the key to the node, so cache node can be reserved.
+      if (dataNode && dataNode.subtree === 'retain') {
+        var cacheKey = key_(cached[idx]);
+        if (cacheKey != null) {
+          dataNode.attrs = {
+            key: cacheKey
+          };
+        }
+      }
+
       var key = _key(dataNode);
       //normarlize key
       _normalizeKey(dataNode, key);
