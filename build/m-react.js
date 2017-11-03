@@ -1025,7 +1025,7 @@
       //while item indicates "retain", and corresponding cache item has a key,
       //assign the key to the node, so cache node can be reserved.
       if (dataNode && dataNode.subtree === 'retain') {
-        var cacheKey = key_(cached[idx]);
+        var cacheKey = _key(cached[idx]);
         if (cacheKey != null) {
           dataNode.attrs = {
             key: cacheKey
